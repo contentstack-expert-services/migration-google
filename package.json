@@ -1,0 +1,22 @@
+{
+  "name": "migration-google",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon run index.js"
+  },
+  "author": "Contentstack Migration Team",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "dependencies": {
+    "fs-readdir-recursive": "^1.1.0",
+    "lodash": "^4.17.21",
+    "string-similarity": "^4.0.4",
+    "to-json-schema": "^0.2.5",
+    "uuid": "^9.0.1"
+  }
+}
