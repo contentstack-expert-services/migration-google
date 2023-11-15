@@ -4,9 +4,10 @@ const { contentMapper } = require("../utils/contentMapper");
 const { flatten, separateSimilarStrings, filteredArraySection, separateSection, contentArray } = require("../utils");
 const { rteMapper } = require("../utils/rteMapper");
 const helper = require("../helper");
+const _ = require("lodash");
+const htmlparser = require('htmlparser2');
 const globalFolder = "/Users/umesh.more/Downloads/tmp";
 const folder = read(globalFolder);
-const _ = require("lodash");
 
 
 const createContent = (type, item) => {
@@ -61,31 +62,107 @@ const sectionWrapper = (section, newData) => {
   return data;
 }
 
+function checkTags(htmlString) {
+  const tagRegex = /<\s*\/?\s*([a-zA-Z0-9\-_]+)[^>]*>/g;
+  const tags = htmlString.match(tagRegex) || [];
+  const tagCount = {};
+  let incompleteTag = null;
+  let tagName = null;
+
+  tags.forEach(tag => {
+    tagName = tag.replace(/<\s*\/?\s*([a-zA-Z0-9\-_]+)[^>]*>/, '$1');
+    tagCount[tagName] = (tagCount[tagName] || 0) + ((tag.startsWith('</') || tag.startsWith('<') ? -1 : 1));
+    if (tagCount?.[tagName] < 1) {
+      incompleteTag = tag;
+    }
+  });
+  let hasIncomplete = false;
+  Object?.entries(tagCount)?.forEach(([key, value]) => {
+    if (value !== (0 || -2)) {
+      hasIncomplete = true;
+    }
+  });
+  return {
+    hasIncomplete,
+    incompleteTag,
+    tagName
+  };
+}
+
+const extractItemsBetweenTags = (data, startTag, endTag) => {
+  let result = [];
+  let startIndex = null;
+  let endIndex = null;
+  let isInBetween = false;
+  data?.forEach((item, index) => {
+    if (item?.incompleteTag === startTag) {
+      startIndex = index;
+      isInBetween = true;
+      result.push(item);
+    } else if (isInBetween) {
+      if (item?.incompleteTag === endTag) {
+        endIndex = index;
+        isInBetween = false;
+        result.push(item);
+      } else {
+        result.push(item);
+      }
+    }
+  })
+  return { startIndex, endIndex, result };
+}
+
+const paragraphWrapper = (data) => {
+  let obj = {};
+  const newData = [];
+  const paragraphArray = extractItemsBetweenTags(data, "<p>", "</p>")
+  paragraphArray?.result?.forEach((chd) => {
+    if (chd?.tagName === "p" && chd?.hasIncomplete) {
+      if (chd?.incompleteTag === "<p>") {
+        obj = rteMapper({ type: "paragraph", text: chd?.text })
+      } else if (chd?.incompleteTag === "</p>") {
+        obj?.children?.push({ text: chd?.text })
+      }
+    } else {
+      obj?.children?.push(chd)
+    }
+  })
+  data?.forEach((item, index) => {
+    if (paragraphArray?.startIndex === index) {
+      newData?.push(obj);
+    }
+    if (index > paragraphArray?.endIndex || index < paragraphArray?.startIndex) {
+      newData?.push(item);
+    }
+  })
+  return newData;
+}
+
 
 
 const objectNester = (body) => {
+  const children = [];
   body?.forEach?.((item) => {
     for ([key, value] of Object?.entries?.(item)) {
       if (_.isObject(value)) {
-        // console.log(value?.schemaType ?? value, value?.items)
         if (value?.schemaType) {
-          // console.log(value?.schemaType, value)
-          console.log(rteMapper({ type: value?.schemaType, data: value }))
+          children?.push(rteMapper({ type: value?.schemaType, data: value }))
         } else if (value?.text) {
-          console.log(value?.text)
+          children?.push({ text: value?.text, ...checkTags(value?.text) });
         }
       } else {
         console.log(`${key} : ${value}`);
       }
     }
   })
+  return paragraphWrapper(children)
 }
 
 const itemWrapper = (items) => {
   //sdp_items_main
   const result = [];
   items?.forEach((item, i) => {
-    if (i === 0) {
+    if (i === 1) {
       const obj = {};
       const sdpHeadingRte = rteMapper({ type: "doc" })
       sdpHeadingRte?.children?.push(
@@ -102,7 +179,9 @@ const itemWrapper = (items) => {
         sdp_heading_title: item?.heading ?? "",
         sdp_heading_rte: sdpHeadingRte
       }
-      objectNester(item?.body)
+      const sdpMainRte = rteMapper({ type: "doc" })
+      sdpMainRte?.children?.push(...objectNester(item?.body));
+      console.log("🚀 ~ file: entries.js:184 ~ items?.forEach ~ sdpMainRte:", JSON.stringify(sdpMainRte))
     }
   })
 }
