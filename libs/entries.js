@@ -5,7 +5,6 @@ const { flatten, separateSimilarStrings, filteredArraySection, separateSection, 
 const { rteMapper } = require("../utils/rteMapper");
 const helper = require("../helper");
 const _ = require("lodash");
-const htmlparser = require('htmlparser2');
 const globalFolder = "/Users/umesh.more/Downloads/tmp";
 const folder = read(globalFolder);
 
