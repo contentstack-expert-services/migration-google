@@ -124,15 +124,31 @@ const paragraphWrapper = (data) => {
         obj?.children?.push({ text: chd?.text })
       }
     } else {
-      obj?.children?.push(chd)
+      if (chd?.text && chd?.hasIncomplete === false) {
+        obj?.children?.push({ text: chd?.text })
+      } else {
+        obj?.children?.push(chd)
+      }
     }
   })
   data?.forEach((item, index) => {
-    if (paragraphArray?.startIndex === index) {
-      newData?.push(obj);
-    }
-    if (index > paragraphArray?.endIndex || index < paragraphArray?.startIndex) {
-      newData?.push(item);
+    if (paragraphArray?.startIndex && paragraphArray?.endIndex) {
+      if (paragraphArray?.startIndex === index) {
+        newData?.push(obj);
+      }
+      if (index > paragraphArray?.endIndex || index < paragraphArray?.startIndex) {
+        if (item?.tagName === "p") {
+          newData?.push(rteMapper({ type: "paragraph", text: item?.text }))
+        } else {
+          newData?.push(item);
+        }
+      }
+    } else {
+      if (item?.tagName === "p") {
+        newData?.push(rteMapper({ type: "paragraph", text: item?.text }))
+      } else {
+        newData?.push(item);
+      }
     }
   })
   return newData;
@@ -162,7 +178,7 @@ const itemWrapper = (items) => {
   //sdp_items_main
   const result = [];
   items?.forEach((item, i) => {
-    if (i === 1) {
+    if (i === 3) {
       const obj = {};
       const sdpHeadingRte = rteMapper({ type: "doc" })
       sdpHeadingRte?.children?.push(
@@ -180,6 +196,7 @@ const itemWrapper = (items) => {
         sdp_heading_rte: sdpHeadingRte
       }
       const sdpMainRte = rteMapper({ type: "doc" })
+      // console.log("🚀 ~ file: entries.js:189 ~ items?.forEach ~  item?.body:", item?.body)
       sdpMainRte?.children?.push(...objectNester(item?.body));
       console.log("🚀 ~ file: entries.js:184 ~ items?.forEach ~ sdpMainRte:", JSON.stringify(sdpMainRte))
     }

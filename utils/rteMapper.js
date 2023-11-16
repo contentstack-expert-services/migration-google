@@ -1,7 +1,35 @@
 
 const helper = require("../helper/index")
+const _ = require("lodash")
 
-const rteMapper = ({ type, text, value, headingType, entryUid, contentTypeUid, attrs = {}, data }) => {
+const ulCreater = ({ data }) => {
+  const list = [];
+  data?.forEach((item) => {
+    list?.push(rteMapper({ type: item?.schemaType, data: item }))
+  });
+  return list;
+}
+
+const listCreater = ({ data }) => {
+  const children = [];
+  data?.forEach((item) => {
+    for ([key, value] of Object?.entries?.(item)) {
+      if (_.isObject(value)) {
+        if (value?.schemaType) {
+          children?.push(rteMapper({ type: value?.schemaType, data: value }))
+        } else if (value?.text) {
+          // children?.push({ text: value?.text, ...checkTags(value?.text) });
+        }
+      } else {
+        console.log("🚀 ~ file: rteMapper.js:16 ~ listCreater ~ key, value:", key, value)
+      }
+    }
+  })
+  console.log("🚀 ~ file: rteMapper.js:15 ~ listCreater ~ children:", children)
+}
+
+
+const rteMapper = ({ type, text, value, headingType, contentTypeUid, attrs = {}, data }) => {
   const uid = helper?.uidGenrator();
   switch (type) {
     case "doc": {
@@ -70,7 +98,7 @@ const rteMapper = ({ type, text, value, headingType, entryUid, contentTypeUid, a
 
       }
     }
-    case "zippyList": {
+    case "ACCORDION": {
       return {
         uid,
         "type": "reference",
@@ -78,9 +106,9 @@ const rteMapper = ({ type, text, value, headingType, entryUid, contentTypeUid, a
           "display-type": "block",
           "type": "entry",
           "class-name": "embedded-entry redactor-component block-entry",
-          "entry-uid": entryUid,
+          "entry-uid": data?.contentId?.replace(/-/g, ''),
           "locale": "en-us",
-          "content-type-uid": contentTypeUid
+          "content-type-uid": "sdp_accordion_component"
         }
       }
     }
@@ -108,6 +136,7 @@ const rteMapper = ({ type, text, value, headingType, entryUid, contentTypeUid, a
         ]
       }
     }
+
     case "EXTERNAL": {
       return {
         "type": "a",
@@ -133,6 +162,31 @@ const rteMapper = ({ type, text, value, headingType, entryUid, contentTypeUid, a
       }
     }
 
+    case "INSET_BOX": {
+      return {
+        "type": "info",
+        "attrs": data?.options,
+        uid,
+        "children": data?.body?.map((item) => item?.text)
+      }
+    }
+
+    case "UNORDERED_LIST": {
+      return {
+        uid,
+        "type": "ul",
+        "children": ulCreater({ data: data?.items })
+      }
+    }
+
+    case "LIST_ITEM": {
+      return {
+        "type": "li",
+        "attrs": {},
+        uid,
+        "children": listCreater({ data: data?.items })
+      }
+    }
   }
 }
 
