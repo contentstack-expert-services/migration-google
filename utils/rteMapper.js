@@ -1,6 +1,8 @@
-
-const helper = require("../helper/index")
-const _ = require("lodash")
+const checkTags = require("./checkTags")
+const helper = require("../helper")
+const paragraphWrapper = require("./paragraphWrapper")
+const _ = require("lodash");
+const extractItemsBetweenTags = require("./extractItemsBetweenTags");
 
 const ulCreater = ({ data }) => {
   const list = [];
@@ -10,26 +12,195 @@ const ulCreater = ({ data }) => {
   return list;
 }
 
-const listCreater = ({ data }) => {
-  const children = [];
-  data?.forEach((item) => {
+const liCreate = ({ data }) => {
+  const obj = [];
+  const newData = [];
+  let para = {};
+  data?.forEach?.((item) => {
     for ([key, value] of Object?.entries?.(item)) {
       if (_.isObject(value)) {
         if (value?.schemaType) {
-          children?.push(rteMapper({ type: value?.schemaType, data: value }))
+          obj?.push(rteMapper({ type: value?.schemaType, data: value }))
         } else if (value?.text) {
-          // children?.push({ text: value?.text, ...checkTags(value?.text) });
+          obj?.push({ text: value?.text, ...checkTags(value?.text) });
         }
       } else {
-        console.log("🚀 ~ file: rteMapper.js:16 ~ listCreater ~ key, value:", key, value)
+        console.log(`${key} : ${value}`);
       }
     }
   })
-  console.log("🚀 ~ file: rteMapper.js:15 ~ listCreater ~ children:", children)
+  const paragraphArray = extractItemsBetweenTags(obj, "<p>", "</p>")
+  paragraphArray?.result?.forEach((chd) => {
+    if (chd?.tagName === "p" && chd?.hasIncomplete) {
+      if (chd?.incompleteTag === "<p>") {
+        para = rteMapper({ type: "paragraph", text: chd?.text })
+      } else if (chd?.incompleteTag === "</p>") {
+        para?.children?.push({ text: chd?.text })
+      }
+    } else {
+      if (chd?.text && chd?.hasIncomplete === false) {
+        para?.children?.push({ text: chd?.text })
+      } else {
+        para?.children?.push(chd)
+      }
+    }
+  })
+  obj?.forEach((item, index) => {
+    if (typeof paragraphArray?.startIndex === "number" && typeof paragraphArray?.endIndex === "number") {
+      if (paragraphArray?.startIndex === index) {
+        newData?.push(para);
+      }
+      if (index > paragraphArray?.endIndex || index < paragraphArray?.startIndex) {
+        if (item?.tagName === "p") {
+          newData?.push(rteMapper({ type: "paragraph", text: item?.text }))
+        } else {
+          newData?.push(item);
+        }
+      }
+    } else {
+      if (item?.tagName === "p") {
+        newData?.push(rteMapper({ type: "paragraph", text: item?.text }))
+      } else {
+        newData?.push(item);
+      }
+    }
+  })
+  return newData;
+}
+
+const pageComponentCreater = ({ item, type }) => {
+  const newObjTr = {
+    "type": "tr",
+    "attrs": {},
+    "children": [],
+    "uid": helper?.uidGenrator(),
+  };
+  item?.cells?.forEach((head) => {
+    console.log("🚀 ~ file: rteMapper.js:79 ~ item?.cells?.forEach ~ head:", head?.data)
+    const tableHead = {
+      type,
+      "attrs": {},
+      "children": [],
+      "uid": helper?.uidGenrator()
+    };
+    const obj = [];
+    const newData = [];
+    let para = {};
+    head?.data?.forEach?.((item) => {
+      for ([key, value] of Object?.entries?.(item)) {
+        if (_.isObject(value)) {
+          if (value?.schemaType) {
+            obj?.push(rteMapper({ type: value?.schemaType, data: value }))
+          } else if (value?.text) {
+            obj?.push({ text: value?.text, ...checkTags(value?.text) });
+          }
+        } else {
+          console.log(`${key} : ${value}`);
+        }
+      }
+    })
+    const paragraphArray = extractItemsBetweenTags(obj, "<p>", "</p>")
+    paragraphArray?.result?.forEach((chd) => {
+      if (chd?.tagName === "p" && chd?.hasIncomplete) {
+        if (chd?.incompleteTag === "<p>") {
+          para = rteMapper({ type: "paragraph", text: chd?.text })
+        } else if (chd?.incompleteTag === "</p>") {
+          para?.children?.push({ text: chd?.text })
+        }
+      } else {
+        if (chd?.text && chd?.hasIncomplete === false) {
+          para?.children?.push({ text: chd?.text })
+        } else {
+          para?.children?.push(chd)
+        }
+      }
+    })
+    obj?.forEach((item, index) => {
+      if (typeof paragraphArray?.startIndex === "number" && typeof paragraphArray?.endIndex === "number") {
+        if (paragraphArray?.startIndex === index) {
+          newData?.push(para);
+        }
+        if (index > paragraphArray?.endIndex || index < paragraphArray?.startIndex) {
+          if (item?.tagName === "p") {
+            newData?.push(rteMapper({ type: "paragraph", text: item?.text }))
+          } else {
+            newData?.push(item);
+          }
+        }
+      } else {
+        if (item?.tagName === "p") {
+          newData?.push(rteMapper({ type: "paragraph", text: item?.text }))
+        } else {
+          newData?.push(item);
+        }
+      }
+    })
+    tableHead.children = newData;
+    newObjTr.children.push(tableHead);
+  })
+  return newObjTr;
+}
+
+const headerCreater = ({ data }) => {
+  const header = {
+    "uid": helper?.uidGenrator(),
+    "type": "thead",
+    "attrs": {},
+    "children": []
+  }
+  data?.forEach((item) => {
+    const children = pageComponentCreater({ item, type: "th" })
+    header.attrs = { "grouping": item?.grouping }
+    header?.children?.push(children);
+  })
+  return header;
+}
+
+const bodyCreater = ({ data }) => {
+  const body = {
+    "type": "tbody",
+    "attrs": {
+      "style": {},
+      "redactor-attributes": {},
+      "dir": "ltr"
+    },
+    "children": []
+  }
+  data?.forEach((item) => {
+    const children = pageComponentCreater({ item, type: "td" })
+    body?.children?.push(children);
+  })
+  // console.log("🚀 ~ file: rteMapper.js:117 ~ bodyCreater ~ body:", JSON.stringify(body))
+  return body;
+}
+
+const tableCreate = ({ data }) => {
+  const table = {
+    "uid": helper?.uidGenrator(),
+    "type": "table",
+    "attrs": {
+      "rows": 3,
+      "cols": 2,
+      "colWidths": [
+        250,
+        250
+      ],
+      "style": {},
+      "redactor-attributes": {},
+      "dir": "ltr"
+    },
+    "children": []
+  }
+  if (data?.headRows) {
+    table?.children.push(headerCreater({ data: data?.headRows }))
+  }
+  if (data?.bodyRows) {
+    table?.children.push(bodyCreater({ data: data?.bodyRows }))
+  }
 }
 
 
-const rteMapper = ({ type, text, value, headingType, contentTypeUid, attrs = {}, data }) => {
+function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {}, data }) {
   const uid = helper?.uidGenrator();
   switch (type) {
     case "doc": {
@@ -184,12 +355,14 @@ const rteMapper = ({ type, text, value, headingType, contentTypeUid, attrs = {},
         "type": "li",
         "attrs": {},
         uid,
-        "children": listCreater({ data: data?.items })
+        children: liCreate({ data: data?.items }),
       }
+    }
+
+    case "TABLE": {
+      tableCreate({ data })
     }
   }
 }
 
-module.exports = {
-  rteMapper
-}
+module.exports = rteMapper

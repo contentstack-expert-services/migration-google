@@ -1,8 +1,13 @@
 const read = require("fs-readdir-recursive");
 const toJsonSchema = require('to-json-schema');
 const { contentMapper } = require("../utils/contentMapper");
-const { flatten, separateSimilarStrings, filteredArraySection, separateSection, contentArray } = require("../utils");
-const { rteMapper } = require("../utils/rteMapper");
+const { flatten,
+  separateSimilarStrings,
+  filteredArraySection,
+  separateSection,
+  contentArray,
+  objectNester } = require("../utils");
+const rteMapper = require("../utils/rteMapper");
 const helper = require("../helper");
 const _ = require("lodash");
 const globalFolder = "/Users/umesh.more/Downloads/tmp";
@@ -11,7 +16,6 @@ const folder = read(globalFolder);
 
 const createContent = (type, item) => {
   const data = rteMapper({ type });
-  // console.log("🚀 ~ file: entries.js:13 ~ createContent ~ data:", data)
   return data;
 }
 
@@ -61,123 +65,13 @@ const sectionWrapper = (section, newData) => {
   return data;
 }
 
-function checkTags(htmlString) {
-  const tagRegex = /<\s*\/?\s*([a-zA-Z0-9\-_]+)[^>]*>/g;
-  const tags = htmlString.match(tagRegex) || [];
-  const tagCount = {};
-  let incompleteTag = null;
-  let tagName = null;
 
-  tags.forEach(tag => {
-    tagName = tag.replace(/<\s*\/?\s*([a-zA-Z0-9\-_]+)[^>]*>/, '$1');
-    tagCount[tagName] = (tagCount[tagName] || 0) + ((tag.startsWith('</') || tag.startsWith('<') ? -1 : 1));
-    if (tagCount?.[tagName] < 1) {
-      incompleteTag = tag;
-    }
-  });
-  let hasIncomplete = false;
-  Object?.entries(tagCount)?.forEach(([key, value]) => {
-    if (value !== (0 || -2)) {
-      hasIncomplete = true;
-    }
-  });
-  return {
-    hasIncomplete,
-    incompleteTag,
-    tagName
-  };
-}
-
-const extractItemsBetweenTags = (data, startTag, endTag) => {
-  let result = [];
-  let startIndex = null;
-  let endIndex = null;
-  let isInBetween = false;
-  data?.forEach((item, index) => {
-    if (item?.incompleteTag === startTag) {
-      startIndex = index;
-      isInBetween = true;
-      result.push(item);
-    } else if (isInBetween) {
-      if (item?.incompleteTag === endTag) {
-        endIndex = index;
-        isInBetween = false;
-        result.push(item);
-      } else {
-        result.push(item);
-      }
-    }
-  })
-  return { startIndex, endIndex, result };
-}
-
-const paragraphWrapper = (data) => {
-  let obj = {};
-  const newData = [];
-  const paragraphArray = extractItemsBetweenTags(data, "<p>", "</p>")
-  paragraphArray?.result?.forEach((chd) => {
-    if (chd?.tagName === "p" && chd?.hasIncomplete) {
-      if (chd?.incompleteTag === "<p>") {
-        obj = rteMapper({ type: "paragraph", text: chd?.text })
-      } else if (chd?.incompleteTag === "</p>") {
-        obj?.children?.push({ text: chd?.text })
-      }
-    } else {
-      if (chd?.text && chd?.hasIncomplete === false) {
-        obj?.children?.push({ text: chd?.text })
-      } else {
-        obj?.children?.push(chd)
-      }
-    }
-  })
-  data?.forEach((item, index) => {
-    if (paragraphArray?.startIndex && paragraphArray?.endIndex) {
-      if (paragraphArray?.startIndex === index) {
-        newData?.push(obj);
-      }
-      if (index > paragraphArray?.endIndex || index < paragraphArray?.startIndex) {
-        if (item?.tagName === "p") {
-          newData?.push(rteMapper({ type: "paragraph", text: item?.text }))
-        } else {
-          newData?.push(item);
-        }
-      }
-    } else {
-      if (item?.tagName === "p") {
-        newData?.push(rteMapper({ type: "paragraph", text: item?.text }))
-      } else {
-        newData?.push(item);
-      }
-    }
-  })
-  return newData;
-}
-
-
-
-const objectNester = (body) => {
-  const children = [];
-  body?.forEach?.((item) => {
-    for ([key, value] of Object?.entries?.(item)) {
-      if (_.isObject(value)) {
-        if (value?.schemaType) {
-          children?.push(rteMapper({ type: value?.schemaType, data: value }))
-        } else if (value?.text) {
-          children?.push({ text: value?.text, ...checkTags(value?.text) });
-        }
-      } else {
-        console.log(`${key} : ${value}`);
-      }
-    }
-  })
-  return paragraphWrapper(children)
-}
 
 const itemWrapper = (items) => {
   //sdp_items_main
   const result = [];
   items?.forEach((item, i) => {
-    if (i === 3) {
+    if (i === 4) {
       const obj = {};
       const sdpHeadingRte = rteMapper({ type: "doc" })
       sdpHeadingRte?.children?.push(
@@ -197,7 +91,7 @@ const itemWrapper = (items) => {
       const sdpMainRte = rteMapper({ type: "doc" })
       // console.log("🚀 ~ file: entries.js:189 ~ items?.forEach ~  item?.body:", item?.body)
       sdpMainRte?.children?.push(...objectNester(item?.body));
-      console.log("🚀 ~ file: entries.js:184 ~ items?.forEach ~ sdpMainRte:", JSON.stringify(sdpMainRte))
+      // console.log("🚀 ~ file: entries.js:184 ~ items?.forEach ~ sdpMainRte:", JSON.stringify(sdpMainRte))
     }
   })
 }
@@ -3846,7 +3740,1127 @@ function entries() {
       "fieldType": "More Information",
       "heading": "Contact",
       "schemaType": "LISTICLE_ITEM"
-    }
+    },
+    {
+      "anchor": "intro",
+      "body": [
+        {
+          "text": {
+            "text": "\u003cp\u003e\u003c/p\u003e"
+          }
+        },
+        {
+          "table": {
+            "bodyRows": [
+              {
+                "cells": [
+                  {
+                    "data": [
+                      {
+                        "text": {
+                          "text": "\u003cp\u003eSet up with\u003cbr\u003e"
+                        }
+                      },
+                      {
+                        "unorderedListRichTextElement": {
+                          "contentId": "0000018b-b69b-d206-a3cf-f6bb5e800000",
+                          "items": [
+                            {
+                              "contentId": "0000018b-b69b-d206-a3cf-f6bb5e800001",
+                              "items": [
+                                {
+                                  "text": {
+                                    "text": "\u003cp\u003ea work profile ("
+                                  }
+                                },
+                                {
+                                  "externalLink": {
+                                    "contentId": "00000185-a704-d800-adfd-bfc486c70000",
+                                    "href": "https://moma.corp.google.com/glossary?entity\u003d/g/11g0n8nkjg",
+                                    "linkText": "PO",
+                                    "schemaType": "EXTERNAL",
+                                    "target": "_blank",
+                                    "linkRichText": [
+                                      {
+                                        "text": {
+                                          "text": "\u003cp\u003ePO\u003c/p\u003e"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                },
+                                {
+                                  "text": {
+                                    "text": " or "
+                                  }
+                                },
+                                {
+                                  "externalLink": {
+                                    "contentId": "00000185-a704-d800-adfd-bfc486c70002",
+                                    "href": "https://moma.corp.google.com/glossary?entity\u003d/g/11ny381tqp",
+                                    "linkText": "COPE",
+                                    "schemaType": "EXTERNAL",
+                                    "target": "_blank",
+                                    "linkRichText": [
+                                      {
+                                        "text": {
+                                          "text": "\u003cp\u003eCOPE\u003c/p\u003e"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                },
+                                {
+                                  "text": {
+                                    "text": " mode),\u003c/p\u003e"
+                                  }
+                                }
+                              ],
+                              "schemaType": "LIST_ITEM"
+                            },
+                            {
+                              "contentId": "0000018b-b69b-d206-a3cf-f6bb5e800002",
+                              "items": [
+                                {
+                                  "text": {
+                                    "text": "\u003cp\u003eor in Fully Managed ("
+                                  }
+                                },
+                                {
+                                  "externalLink": {
+                                    "contentId": "00000185-a704-d800-adfd-bfc486c70004",
+                                    "href": "https://moma.corp.google.com/glossary?entity\u003d/g/11qkt9pjtx",
+                                    "linkText": "DO mode",
+                                    "schemaType": "EXTERNAL",
+                                    "target": "_blank",
+                                    "linkRichText": [
+                                      {
+                                        "text": {
+                                          "text": "\u003cp\u003eDO mode\u003c/p\u003e"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                },
+                                {
+                                  "text": {
+                                    "text": ").\u003c/p\u003e"
+                                  }
+                                }
+                              ],
+                              "schemaType": "LIST_ITEM"
+                            }
+                          ],
+                          "schemaType": "UNORDERED_LIST"
+                        }
+                      },
+                      {
+                        "text": {
+                          "text": "\u003c/p\u003e"
+                        }
+                      }
+                    ],
+                    "colSpan": "1",
+                    "rowSpan": "1"
+                  },
+                  {
+                    "data": [
+                      {
+                        "text": {
+                          "text": "\u003cp\u003eSet up with\u003cbr\u003e"
+                        }
+                      },
+                      {
+                        "unorderedListRichTextElement": {
+                          "contentId": "0000018b-b69b-d206-a3cf-f6bb5e800003",
+                          "items": [
+                            {
+                              "contentId": "0000018b-b69b-d206-a3cf-f6bb5e800004",
+                              "items": [
+                                {
+                                  "text": {
+                                    "text": "\u003cp\u003ea work profile ("
+                                  }
+                                },
+                                {
+                                  "externalLink": {
+                                    "contentId": "00000185-a704-d800-adfd-bfc486c70006",
+                                    "href": "https://moma.corp.google.com/glossary?entity\u003d/g/11ny381tqp",
+                                    "linkText": "COPE",
+                                    "schemaType": "EXTERNAL",
+                                    "target": "_blank",
+                                    "linkRichText": [
+                                      {
+                                        "text": {
+                                          "text": "\u003cp\u003eCOPE\u003c/p\u003e"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                },
+                                {
+                                  "text": {
+                                    "text": " mode only),\u003c/p\u003e"
+                                  }
+                                }
+                              ],
+                              "schemaType": "LIST_ITEM"
+                            },
+                            {
+                              "contentId": "0000018b-b69b-d206-a3cf-f6bb5e800005",
+                              "items": [
+                                {
+                                  "text": {
+                                    "text": "\u003cp\u003eor in Fully Managed ("
+                                  }
+                                },
+                                {
+                                  "externalLink": {
+                                    "contentId": "00000185-a704-d800-adfd-bfc486c70008",
+                                    "href": "https://moma.corp.google.com/glossary?entity\u003d/g/11qkt9pjtx",
+                                    "linkText": "DO mode",
+                                    "schemaType": "EXTERNAL",
+                                    "target": "_blank",
+                                    "linkRichText": [
+                                      {
+                                        "text": {
+                                          "text": "\u003cp\u003eDO mode\u003c/p\u003e"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                },
+                                {
+                                  "text": {
+                                    "text": ").\u003c/p\u003e"
+                                  }
+                                }
+                              ],
+                              "schemaType": "LIST_ITEM"
+                            }
+                          ],
+                          "schemaType": "UNORDERED_LIST"
+                        }
+                      },
+                      {
+                        "text": {
+                          "text": "\u003c/p\u003e"
+                        }
+                      }
+                    ],
+                    "colSpan": "1",
+                    "rowSpan": "1"
+                  }
+                ]
+              },
+              {
+                "cells": [
+                  {
+                    "data": [
+                      {
+                        "text": {
+                          "text": "\u003cp\u003eHave a "
+                        }
+                      },
+                      {
+                        "externalLink": {
+                          "contentId": "00000185-a704-d800-adfd-bfc486c7000a",
+                          "href": "https://support.google.com/pixel/answer/7550416",
+                          "linkText": "Security Patch Level",
+                          "schemaType": "EXTERNAL",
+                          "target": "_blank",
+                          "linkRichText": [
+                            {
+                              "text": {
+                                "text": "\u003cp\u003eSecurity Patch Level\u003c/p\u003e"
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "text": {
+                          "text": " within \u003cb\u003e150 days\u003c/b\u003e\u003c/p\u003e"
+                        }
+                      }
+                    ],
+                    "colSpan": "1",
+                    "rowSpan": "1"
+                  },
+                  {
+                    "data": [
+                      {
+                        "text": {
+                          "text": "\u003cp\u003eHave a "
+                        }
+                      },
+                      {
+                        "externalLink": {
+                          "contentId": "00000185-a704-d800-adfd-bfc486c7000c",
+                          "href": "https://support.google.com/pixel/answer/7550416",
+                          "linkText": "Security Patch Level",
+                          "schemaType": "EXTERNAL",
+                          "target": "_blank",
+                          "linkRichText": [
+                            {
+                              "text": {
+                                "text": "\u003cp\u003eSecurity Patch Level\u003c/p\u003e"
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "text": {
+                          "text": " within \u003cb\u003e50 days\u003c/b\u003e\u003c/p\u003e"
+                        }
+                      }
+                    ],
+                    "colSpan": "1",
+                    "rowSpan": "1"
+                  }
+                ]
+              },
+              {
+                "cells": [
+                  {
+                    "data": [
+                      {
+                        "text": {
+                          "text": "\u003cp\u003eN/A\u003c/p\u003e"
+                        }
+                      }
+                    ],
+                    "colSpan": "1",
+                    "rowSpan": "1"
+                  },
+                  {
+                    "data": [
+                      {
+                        "text": {
+                          "text": "\u003cp\u003eInstall system updates \u003cb\u003ewithin 7 days\u003c/b\u003e of when they become available on your device.\u003c/p\u003e"
+                        }
+                      }
+                    ],
+                    "colSpan": "1",
+                    "rowSpan": "1"
+                  }
+                ]
+              },
+              {
+                "cells": [
+                  {
+                    "data": [
+                      {
+                        "text": {
+                          "text": "\u003cp\u003eRun \u003cb\u003eAndroid 10 or newer\u003c/b\u003e.\u003cbr\u003eAndroid 10 and 11 will soon be deprecated for corp access.\u003cbr\u003eBeta programs and unreleased devices are not recommended as they often lack CTS compliance.\u003cbr\u003e "
+                        }
+                      },
+                      {
+                        "externalLink": {
+                          "contentId": "00000185-a704-d800-adfd-bfc486c80000",
+                          "href": "https://www.android.com/versions/go-edition/",
+                          "linkText": "Android Go edition",
+                          "schemaType": "EXTERNAL",
+                          "target": "_blank",
+                          "linkRichText": [
+                            {
+                              "text": {
+                                "text": "\u003cp\u003eAndroid Go edition\u003c/p\u003e"
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "text": {
+                          "text": " builds are not supported.\u003cbr\u003e\u003c/p\u003e"
+                        }
+                      }
+                    ],
+                    "colSpan": "1",
+                    "rowSpan": "1"
+                  },
+                  {
+                    "data": [
+                      {
+                        "text": {
+                          "text": "\u003cp\u003eRun \u003cb\u003eAndroid 13\u003c/b\u003e or \u003cb\u003e14\u003c/b\u003e ("
+                        }
+                      },
+                      {
+                        "externalLink": {
+                          "contentId": "00000185-a704-d800-adfd-bfc486c80002",
+                          "href": "https://developers.google.com/android/ota",
+                          "linkText": "official public build",
+                          "schemaType": "EXTERNAL",
+                          "target": "_blank",
+                          "linkRichText": [
+                            {
+                              "text": {
+                                "text": "\u003cp\u003eofficial public build\u003c/p\u003e"
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "text": {
+                          "text": ").\u003cbr\u003eDogfood or Public Beta builds are never eligible.\u003cbr\u003e\u003c/p\u003e"
+                        }
+                      }
+                    ],
+                    "colSpan": "1",
+                    "rowSpan": "1"
+                  }
+                ]
+              },
+              {
+                "cells": [
+                  {
+                    "data": [
+                      {
+                        "text": {
+                          "text": "\u003cp\u003eBe "
+                        }
+                      },
+                      {
+                        "externalLink": {
+                          "contentId": "0000018b-b69b-d206-a3cf-f6bb5ee60003",
+                          "href": "https://source.android.com/compatibility/cts",
+                          "linkText": "\u003cb\u003eCTS-compliant*\u003c/b\u003e",
+                          "schemaType": "EXTERNAL",
+                          "target": "_blank",
+                          "linkRichText": [
+                            {
+                              "text": {
+                                "text": "\u003cp\u003e\u003cb\u003eCTS-compliant*\u003c/b\u003e\u003c/p\u003e"
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "text": {
+                          "text": " and have "
+                        }
+                      },
+                      {
+                        "externalLink": {
+                          "contentId": "0000018b-b69b-d206-a3cf-f6bb5ee70000",
+                          "href": "https://www.android.com/gms/",
+                          "linkText": "\u003cb\u003eGMS\u003c/b\u003e",
+                          "schemaType": "EXTERNAL",
+                          "target": "_blank",
+                          "linkRichText": [
+                            {
+                              "text": {
+                                "text": "\u003cp\u003e\u003cb\u003eGMS\u003c/b\u003e\u003c/p\u003e"
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "text": {
+                          "text": " preinstalled\u003c/p\u003e"
+                        }
+                      }
+                    ],
+                    "colSpan": "1",
+                    "rowSpan": "1"
+                  },
+                  {
+                    "data": [
+                      {
+                        "text": {
+                          "text": "\u003cp\u003eBe "
+                        }
+                      },
+                      {
+                        "externalLink": {
+                          "contentId": "0000018b-b69b-d206-a3cf-f6bb5eeb0000",
+                          "href": "https://source.android.com/compatibility/cts",
+                          "linkText": "\u003cb\u003eCTS-compliant \u003c/b\u003e",
+                          "schemaType": "EXTERNAL",
+                          "target": "_blank",
+                          "linkRichText": [
+                            {
+                              "text": {
+                                "text": "\u003cp\u003e\u003cb\u003eCTS-compliant \u003c/b\u003e\u003c/p\u003e"
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "text": {
+                          "text": "and have "
+                        }
+                      },
+                      {
+                        "externalLink": {
+                          "contentId": "0000018b-b69b-d206-a3cf-f6bb5eec0000",
+                          "href": "https://www.android.com/gms/",
+                          "linkText": "\u003cb\u003eGMS\u003c/b\u003e",
+                          "schemaType": "EXTERNAL",
+                          "target": "_blank",
+                          "linkRichText": [
+                            {
+                              "text": {
+                                "text": "\u003cp\u003e\u003cb\u003eGMS\u003c/b\u003e\u003c/p\u003e"
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "text": {
+                          "text": " preinstalled\u003c/p\u003e"
+                        }
+                      }
+                    ],
+                    "colSpan": "1",
+                    "rowSpan": "1"
+                  }
+                ]
+              },
+              {
+                "cells": [
+                  {
+                    "data": [
+                      {
+                        "text": {
+                          "text": "\u003cp\u003e\u003cb\u003eNot be rooted**\u003c/b\u003e\u003c/p\u003e"
+                        }
+                      }
+                    ],
+                    "colSpan": "1",
+                    "rowSpan": "1"
+                  },
+                  {
+                    "data": [
+                      {
+                        "text": {
+                          "text": "\u003cp\u003e\u003cb\u003eNot be rooted\u003c/b\u003e\u003c/p\u003e"
+                        }
+                      }
+                    ],
+                    "colSpan": "1",
+                    "rowSpan": "1"
+                  }
+                ]
+              },
+              {
+                "cells": [
+                  {
+                    "data": [
+                      {
+                        "text": {
+                          "text": "\u003cp\u003eHave a \u003cb\u003elocked bootloader**\u003c/b\u003e\u003c/p\u003e"
+                        }
+                      }
+                    ],
+                    "colSpan": "1",
+                    "rowSpan": "1"
+                  },
+                  {
+                    "data": [
+                      {
+                        "text": {
+                          "text": "\u003cp\u003eHave a \u003cb\u003elocked bootloader\u003c/b\u003e\u003c/p\u003e"
+                        }
+                      }
+                    ],
+                    "colSpan": "1",
+                    "rowSpan": "1"
+                  }
+                ]
+              },
+              {
+                "cells": [
+                  {
+                    "data": [
+                      {
+                        "text": {
+                          "text": "\u003cp\u003e"
+                        }
+                      },
+                      {
+                        "unorderedListRichTextElement": {
+                          "contentId": "0000018b-b69b-d206-a3cf-f6bb5e810000",
+                          "items": [
+                            {
+                              "contentId": "0000018b-b69b-d206-a3cf-f6bb5e810001",
+                              "items": [
+                                {
+                                  "text": {
+                                    "text": "\u003cp\u003eScreen lock: 4-digit PIN, Pattern, or password.\u003cbr\u003eFingerprint and face unlock are allowed.\u003c/p\u003e"
+                                  }
+                                }
+                              ],
+                              "schemaType": "LIST_ITEM"
+                            },
+                            {
+                              "contentId": "0000018b-b69b-d206-a3cf-f6bb5e810002",
+                              "items": [
+                                {
+                                  "text": {
+                                    "text": "\u003cp\u003eNon-biometric unlock required every 48 hours.\u003c/p\u003e"
+                                  }
+                                }
+                              ],
+                              "schemaType": "LIST_ITEM"
+                            },
+                            {
+                              "contentId": "0000018b-b69b-d206-a3cf-f6bb5e810003",
+                              "items": [
+                                {
+                                  "text": {
+                                    "text": "\u003cp\u003eAutomatic Screen lock: after 15 minutes of inactivity.\u003c/p\u003e"
+                                  }
+                                }
+                              ],
+                              "schemaType": "LIST_ITEM"
+                            }
+                          ],
+                          "schemaType": "UNORDERED_LIST"
+                        }
+                      },
+                      {
+                        "text": {
+                          "text": "\u003c/p\u003e \u003cp\u003e\u003cb\u003eNote\u003c/b\u003e: When setting up a company-owned device (work profile or Fully Managed mode), a strong 6-character alphanumeric password or 8-digit PIN will be required. To use a PIN or pattern, visit "
+                        }
+                      },
+                      {
+                        "externalLink": {
+                          "contentId": "0000018b-b69b-d206-a3cf-f6bb5efa0000",
+                          "href": "https://goto.google.com/ep",
+                          "linkText": "go/ep",
+                          "schemaType": "EXTERNAL",
+                          "target": "_blank",
+                          "linkRichText": [
+                            {
+                              "text": {
+                                "text": "\u003cp\u003ego/ep\u003c/p\u003e"
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "text": {
+                          "text": ", downgrade the device to Basic Access, and wait a few days for the less restrictive policy to reach the device.\u003cbr\u003e\u003c/p\u003e"
+                        }
+                      }
+                    ],
+                    "colSpan": "1",
+                    "rowSpan": "1"
+                  },
+                  {
+                    "data": [
+                      {
+                        "text": {
+                          "text": "\u003cp\u003e"
+                        }
+                      },
+                      {
+                        "unorderedListRichTextElement": {
+                          "contentId": "0000018b-b69b-d206-a3cf-f6bb5e810004",
+                          "items": [
+                            {
+                              "contentId": "0000018b-b69b-d206-a3cf-f6bb5e810005",
+                              "items": [
+                                {
+                                  "text": {
+                                    "text": "\u003cp\u003eScreen lock: A 6-character alphanumeric password or 8-digit PIN.\u003cbr\u003eFingerprint unlock is allowed.\u003cbr\u003eFace unlock is only allowed on Pixel 4 (XL).\u003cbr\u003e\u003cb\u003eNote: Pixel 7 (Pro)\u003c/b\u003e can only use face unlock for the personal profile. To enable this head to: Settings"
+                                  }
+                                },
+                                {
+                                  "snippetRichText": {
+                                    "contentId": "0000018a-d676-df32-abfb-def724820000",
+                                    "schemaType": "SNIPPET",
+                                    "snippet": {
+                                      "contentId": "00000185-3611-d5bd-a3c5-fed7338c0000",
+                                      "items": [
+                                        {
+                                          "imageRichTextElement": {
+                                            "altText": "and then",
+                                            "contentId": "00000186-3328-d85b-a38e-bfbba8ef0000",
+                                            "height": "18",
+                                            "image": {
+                                              "contentId": "00000185-3611-d5bd-a3c5-fed7334a0000",
+                                              "image": {
+                                                "json": "{\"src\":\"https://www.gstatic.com/servicedesk_bsp/a9/7a/7b5ae94240d1a97198e5f05082f7/f514d258db660783a353ba8f1cee7f707f70640f82c428f8be470821ee246ce6d5a533bf9a4f022f1e9c08fc87ea12cabdfd25a86a14eff2df141aa1fd317ce4.png\",\"width\":\"24\",\"height\":\"24\"}",
+                                                "entries": [
+                                                  {
+                                                    "key": "src",
+                                                    "value": "https://www.gstatic.com/servicedesk_bsp/a9/7a/7b5ae94240d1a97198e5f05082f7/f514d258db660783a353ba8f1cee7f707f70640f82c428f8be470821ee246ce6d5a533bf9a4f022f1e9c08fc87ea12cabdfd25a86a14eff2df141aa1fd317ce4.png"
+                                                  },
+                                                  {
+                                                    "key": "width",
+                                                    "value": "24"
+                                                  },
+                                                  {
+                                                    "key": "height",
+                                                    "value": "24"
+                                                  }
+                                                ]
+                                              },
+                                              "narrowImage": {
+                                                "json": "{\"src\":\"https://www.gstatic.com/servicedesk_bsp/a9/7a/7b5ae94240d1a97198e5f05082f7/f514d258db660783a353ba8f1cee7f707f70640f82c428f8be470821ee246ce6d5a533bf9a4f022f1e9c08fc87ea12cabdfd25a86a14eff2df141aa1fd317ce4.png\",\"width\":\"24\",\"height\":\"24\"}",
+                                                "entries": [
+                                                  {
+                                                    "key": "src",
+                                                    "value": "https://www.gstatic.com/servicedesk_bsp/a9/7a/7b5ae94240d1a97198e5f05082f7/f514d258db660783a353ba8f1cee7f707f70640f82c428f8be470821ee246ce6d5a533bf9a4f022f1e9c08fc87ea12cabdfd25a86a14eff2df141aa1fd317ce4.png"
+                                                  },
+                                                  {
+                                                    "key": "width",
+                                                    "value": "24"
+                                                  },
+                                                  {
+                                                    "key": "height",
+                                                    "value": "24"
+                                                  }
+                                                ]
+                                              },
+                                              "schemaType": "IMAGE",
+                                              "urlData": "https://www.gstatic.com/servicedesk_bsp/a9/7a/7b5ae94240d1a97198e5f05082f7/f514d258db660783a353ba8f1cee7f707f70640f82c428f8be470821ee246ce6d5a533bf9a4f022f1e9c08fc87ea12cabdfd25a86a14eff2df141aa1fd317ce4.png"
+                                            },
+                                            "schemaType": "IMAGE_RICH_TEXT",
+                                            "width": "18"
+                                          }
+                                        },
+                                        {
+                                          "text": {
+                                            "text": "\u003cp\u003e\u003c/p\u003e"
+                                          }
+                                        }
+                                      ],
+                                      "name": "Standard \u003e Icon \u003e and then",
+                                      "schemaType": "SNIPPET"
+                                    }
+                                  }
+                                },
+                                {
+                                  "text": {
+                                    "text": "Security \u0026amp; Privacy"
+                                  }
+                                },
+                                {
+                                  "snippetRichText": {
+                                    "contentId": "0000018a-d676-df32-abfb-def724820000",
+                                    "schemaType": "SNIPPET",
+                                    "snippet": {
+                                      "contentId": "00000185-3611-d5bd-a3c5-fed7338c0000",
+                                      "items": [
+                                        {
+                                          "imageRichTextElement": {
+                                            "altText": "and then",
+                                            "contentId": "00000186-3328-d85b-a38e-bfbba8ef0000",
+                                            "height": "18",
+                                            "image": {
+                                              "contentId": "00000185-3611-d5bd-a3c5-fed7334a0000",
+                                              "image": {
+                                                "json": "{\"src\":\"https://www.gstatic.com/servicedesk_bsp/a9/7a/7b5ae94240d1a97198e5f05082f7/f514d258db660783a353ba8f1cee7f707f70640f82c428f8be470821ee246ce6d5a533bf9a4f022f1e9c08fc87ea12cabdfd25a86a14eff2df141aa1fd317ce4.png\",\"width\":\"24\",\"height\":\"24\"}",
+                                                "entries": [
+                                                  {
+                                                    "key": "src",
+                                                    "value": "https://www.gstatic.com/servicedesk_bsp/a9/7a/7b5ae94240d1a97198e5f05082f7/f514d258db660783a353ba8f1cee7f707f70640f82c428f8be470821ee246ce6d5a533bf9a4f022f1e9c08fc87ea12cabdfd25a86a14eff2df141aa1fd317ce4.png"
+                                                  },
+                                                  {
+                                                    "key": "width",
+                                                    "value": "24"
+                                                  },
+                                                  {
+                                                    "key": "height",
+                                                    "value": "24"
+                                                  }
+                                                ]
+                                              },
+                                              "narrowImage": {
+                                                "json": "{\"src\":\"https://www.gstatic.com/servicedesk_bsp/a9/7a/7b5ae94240d1a97198e5f05082f7/f514d258db660783a353ba8f1cee7f707f70640f82c428f8be470821ee246ce6d5a533bf9a4f022f1e9c08fc87ea12cabdfd25a86a14eff2df141aa1fd317ce4.png\",\"width\":\"24\",\"height\":\"24\"}",
+                                                "entries": [
+                                                  {
+                                                    "key": "src",
+                                                    "value": "https://www.gstatic.com/servicedesk_bsp/a9/7a/7b5ae94240d1a97198e5f05082f7/f514d258db660783a353ba8f1cee7f707f70640f82c428f8be470821ee246ce6d5a533bf9a4f022f1e9c08fc87ea12cabdfd25a86a14eff2df141aa1fd317ce4.png"
+                                                  },
+                                                  {
+                                                    "key": "width",
+                                                    "value": "24"
+                                                  },
+                                                  {
+                                                    "key": "height",
+                                                    "value": "24"
+                                                  }
+                                                ]
+                                              },
+                                              "schemaType": "IMAGE",
+                                              "urlData": "https://www.gstatic.com/servicedesk_bsp/a9/7a/7b5ae94240d1a97198e5f05082f7/f514d258db660783a353ba8f1cee7f707f70640f82c428f8be470821ee246ce6d5a533bf9a4f022f1e9c08fc87ea12cabdfd25a86a14eff2df141aa1fd317ce4.png"
+                                            },
+                                            "schemaType": "IMAGE_RICH_TEXT",
+                                            "width": "18"
+                                          }
+                                        },
+                                        {
+                                          "text": {
+                                            "text": "\u003cp\u003e\u003c/p\u003e"
+                                          }
+                                        }
+                                      ],
+                                      "name": "Standard \u003e Icon \u003e and then",
+                                      "schemaType": "SNIPPET"
+                                    }
+                                  }
+                                },
+                                {
+                                  "text": {
+                                    "text": "More security settings"
+                                  }
+                                },
+                                {
+                                  "snippetRichText": {
+                                    "contentId": "0000018a-d676-df32-abfb-def724820000",
+                                    "schemaType": "SNIPPET",
+                                    "snippet": {
+                                      "contentId": "00000185-3611-d5bd-a3c5-fed7338c0000",
+                                      "items": [
+                                        {
+                                          "imageRichTextElement": {
+                                            "altText": "and then",
+                                            "contentId": "00000186-3328-d85b-a38e-bfbba8ef0000",
+                                            "height": "18",
+                                            "image": {
+                                              "contentId": "00000185-3611-d5bd-a3c5-fed7334a0000",
+                                              "image": {
+                                                "json": "{\"src\":\"https://www.gstatic.com/servicedesk_bsp/a9/7a/7b5ae94240d1a97198e5f05082f7/f514d258db660783a353ba8f1cee7f707f70640f82c428f8be470821ee246ce6d5a533bf9a4f022f1e9c08fc87ea12cabdfd25a86a14eff2df141aa1fd317ce4.png\",\"width\":\"24\",\"height\":\"24\"}",
+                                                "entries": [
+                                                  {
+                                                    "key": "src",
+                                                    "value": "https://www.gstatic.com/servicedesk_bsp/a9/7a/7b5ae94240d1a97198e5f05082f7/f514d258db660783a353ba8f1cee7f707f70640f82c428f8be470821ee246ce6d5a533bf9a4f022f1e9c08fc87ea12cabdfd25a86a14eff2df141aa1fd317ce4.png"
+                                                  },
+                                                  {
+                                                    "key": "width",
+                                                    "value": "24"
+                                                  },
+                                                  {
+                                                    "key": "height",
+                                                    "value": "24"
+                                                  }
+                                                ]
+                                              },
+                                              "narrowImage": {
+                                                "json": "{\"src\":\"https://www.gstatic.com/servicedesk_bsp/a9/7a/7b5ae94240d1a97198e5f05082f7/f514d258db660783a353ba8f1cee7f707f70640f82c428f8be470821ee246ce6d5a533bf9a4f022f1e9c08fc87ea12cabdfd25a86a14eff2df141aa1fd317ce4.png\",\"width\":\"24\",\"height\":\"24\"}",
+                                                "entries": [
+                                                  {
+                                                    "key": "src",
+                                                    "value": "https://www.gstatic.com/servicedesk_bsp/a9/7a/7b5ae94240d1a97198e5f05082f7/f514d258db660783a353ba8f1cee7f707f70640f82c428f8be470821ee246ce6d5a533bf9a4f022f1e9c08fc87ea12cabdfd25a86a14eff2df141aa1fd317ce4.png"
+                                                  },
+                                                  {
+                                                    "key": "width",
+                                                    "value": "24"
+                                                  },
+                                                  {
+                                                    "key": "height",
+                                                    "value": "24"
+                                                  }
+                                                ]
+                                              },
+                                              "schemaType": "IMAGE",
+                                              "urlData": "https://www.gstatic.com/servicedesk_bsp/a9/7a/7b5ae94240d1a97198e5f05082f7/f514d258db660783a353ba8f1cee7f707f70640f82c428f8be470821ee246ce6d5a533bf9a4f022f1e9c08fc87ea12cabdfd25a86a14eff2df141aa1fd317ce4.png"
+                                            },
+                                            "schemaType": "IMAGE_RICH_TEXT",
+                                            "width": "18"
+                                          }
+                                        },
+                                        {
+                                          "text": {
+                                            "text": "\u003cp\u003e\u003c/p\u003e"
+                                          }
+                                        }
+                                      ],
+                                      "name": "Standard \u003e Icon \u003e and then",
+                                      "schemaType": "SNIPPET"
+                                    }
+                                  }
+                                },
+                                {
+                                  "text": {
+                                    "text": "Disable ‘Use one lock for work profile.’ Check "
+                                  }
+                                },
+                                {
+                                  "externalLink": {
+                                    "contentId": "0000018b-b69b-d206-a3cf-f6bb5f320000",
+                                    "href": "http://goto.google.com/pixel-face-auth-in-corp",
+                                    "linkText": "go/pixel-face-auth-in-corp",
+                                    "schemaType": "EXTERNAL",
+                                    "target": "_blank",
+                                    "linkRichText": [
+                                      {
+                                        "text": {
+                                          "text": "\u003cp\u003ego/pixel-face-auth-in-corp\u003c/p\u003e"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                },
+                                {
+                                  "text": {
+                                    "text": " for more details.\u003c/p\u003e"
+                                  }
+                                }
+                              ],
+                              "schemaType": "LIST_ITEM"
+                            },
+                            {
+                              "contentId": "0000018b-b69b-d206-a3cf-f6bb5e810006",
+                              "items": [
+                                {
+                                  "text": {
+                                    "text": "\u003cp\u003eNon-biometric unlock required every 10 hours.\u003c/p\u003e"
+                                  }
+                                }
+                              ],
+                              "schemaType": "LIST_ITEM"
+                            },
+                            {
+                              "contentId": "0000018b-b69b-d206-a3cf-f6bb5e810007",
+                              "items": [
+                                {
+                                  "text": {
+                                    "text": "\u003cp\u003eAutomatic Screen lock: after 5 minutes of inactivity.\u003c/p\u003e"
+                                  }
+                                }
+                              ],
+                              "schemaType": "LIST_ITEM"
+                            }
+                          ],
+                          "schemaType": "UNORDERED_LIST"
+                        }
+                      },
+                      {
+                        "text": {
+                          "text": "\u003c/p\u003e "
+                        }
+                      }
+                    ],
+                    "colSpan": "1",
+                    "rowSpan": "1"
+                  }
+                ]
+              },
+              {
+                "cells": [
+                  {
+                    "data": [
+                      {
+                        "text": {
+                          "text": "\u003cp\u003eA corp inventory record is not required.\u003c/p\u003e"
+                        }
+                      }
+                    ],
+                    "colSpan": "1",
+                    "rowSpan": "1"
+                  },
+                  {
+                    "data": [
+                      {
+                        "text": {
+                          "text": "\u003cp\u003eHave a corp inventory record:\u003cbr\u003e"
+                        }
+                      },
+                      {
+                        "unorderedListRichTextElement": {
+                          "contentId": "0000018b-b69b-d206-a3cf-f6bb5e820000",
+                          "items": [
+                            {
+                              "contentId": "0000018b-b69b-d206-a3cf-f6bb5e820001",
+                              "items": [
+                                {
+                                  "text": {
+                                    "text": "\u003cp\u003eDevices from Stuff always have a corp inventory record.\u003c/p\u003e"
+                                  }
+                                }
+                              ],
+                              "schemaType": "LIST_ITEM"
+                            },
+                            {
+                              "contentId": "0000018b-b69b-d206-a3cf-f6bb5e820002",
+                              "items": [
+                                {
+                                  "text": {
+                                    "text": "\u003cp\u003eExpensed devices are automatically registered in corp inventory once the expense process is complete.\u003c/p\u003e"
+                                  }
+                                }
+                              ],
+                              "schemaType": "LIST_ITEM"
+                            },
+                            {
+                              "contentId": "0000018b-b69b-d206-a3cf-f6bb5e820003",
+                              "items": [
+                                {
+                                  "text": {
+                                    "text": "\u003cp\u003ePersonally-owned devices can be registered in corp inventory at "
+                                  }
+                                },
+                                {
+                                  "externalLink": {
+                                    "contentId": "00000185-a704-d800-adfd-bfc486c80008",
+                                    "href": "http://goto.google.com/pde",
+                                    "linkText": "go/pde",
+                                    "schemaType": "EXTERNAL",
+                                    "target": "_blank",
+                                    "linkRichText": [
+                                      {
+                                        "text": {
+                                          "text": "\u003cp\u003ego/pde\u003c/p\u003e"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                },
+                                {
+                                  "text": {
+                                    "text": "\u003cbr\u003e (not accessible to xWF).\u003c/p\u003e"
+                                  }
+                                }
+                              ],
+                              "schemaType": "LIST_ITEM"
+                            }
+                          ],
+                          "schemaType": "UNORDERED_LIST"
+                        }
+                      },
+                      {
+                        "text": {
+                          "text": "\u003c/p\u003e"
+                        }
+                      }
+                    ],
+                    "colSpan": "1",
+                    "rowSpan": "1"
+                  }
+                ]
+              },
+              {
+                "cells": [
+                  {
+                    "data": [
+                      {
+                        "text": {
+                          "text": "\u003cp\u003e\u003ci\u003e* Select Motorola Edge 20 users (from India, Mexico and Brazil) who ordered their device from Stuff are part of a limited Pilot where their device is Fully Supported and eligible for Highly Privileged Access.\u003c/i\u003e \u003cbr\u003e\u003ci\u003e* *Unless it’s running a recent and approved dogfood build. \u003c/i\u003e\u003cbr\u003e\u003ci\u003eDogfood builds are supported by the \u003c/i\u003e"
+                        }
+                      },
+                      {
+                        "externalLink": {
+                          "contentId": "00000185-a704-d800-adfd-bfc486c8000a",
+                          "href": "https://goto.google.com/a-dogfooding",
+                          "linkText": "\u003ci\u003eAndroid Dogfood Team\u003c/i\u003e",
+                          "schemaType": "EXTERNAL",
+                          "target": "_blank",
+                          "linkRichText": [
+                            {
+                              "text": {
+                                "text": "\u003cp\u003e\u003ci\u003eAndroid Dogfood Team\u003c/i\u003e\u003c/p\u003e"
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "text": {
+                          "text": "\u003ci\u003e.\u003c/i\u003e \u003c/p\u003e"
+                        }
+                      }
+                    ],
+                    "colSpan": "2",
+                    "rowSpan": "1"
+                  }
+                ]
+              }
+            ],
+            "contentId": "0000018b-b69b-d206-a3cf-f6bb5e850000",
+            "headRows": [
+              {
+                "cells": [
+                  {
+                    "data": [
+                      {
+                        "text": {
+                          "text": "\u003cp\u003e"
+                        }
+                      },
+                      {
+                        "externalLink": {
+                          "contentId": "00000187-e146-d16f-afcf-ebff7f030000",
+                          "href": "https://moma.corp.google.com/glossary?entity\u003d/g/11jpr18lvl",
+                          "linkText": "Basic Access",
+                          "schemaType": "EXTERNAL",
+                          "target": "_blank",
+                          "linkRichText": [
+                            {
+                              "text": {
+                                "text": "\u003cp\u003eBasic Access\u003c/p\u003e"
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "text": {
+                          "text": "\u003c/p\u003e"
+                        }
+                      }
+                    ],
+                    "colSpan": "1",
+                    "rowSpan": "1"
+                  },
+                  {
+                    "data": [
+                      {
+                        "text": {
+                          "text": "\u003cp\u003e"
+                        }
+                      },
+                      {
+                        "externalLink": {
+                          "contentId": "00000187-e147-d16f-afcf-ebff26ab0000",
+                          "href": "https://moma.corp.google.com/glossary?entity\u003d/g/11k6kgt1rq",
+                          "linkText": "Highly Privileged Access",
+                          "schemaType": "EXTERNAL",
+                          "target": "_blank",
+                          "linkRichText": [
+                            {
+                              "text": {
+                                "text": "\u003cp\u003eHighly Privileged Access\u003c/p\u003e"
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "text": {
+                          "text": "\u003cbr\u003e (Pixel 5, Pixel 4a5G or newer)\u003c/p\u003e"
+                        }
+                      }
+                    ],
+                    "colSpan": "1",
+                    "rowSpan": "1"
+                  }
+                ],
+                "grouping": "Header"
+              }
+            ],
+            "schemaType": "TABLE",
+            "tableStyle": "Nice Table"
+          }
+        }
+      ],
+      "contentId": "0000018a-3d08-d980-a3db-bf0c67340000",
+      "fieldType": "Intro",
+      "schemaType": "LISTICLE_ITEM"
+    },
   ];
   itemWrapper(items)
 }
