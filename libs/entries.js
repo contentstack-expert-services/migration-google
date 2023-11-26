@@ -103,7 +103,7 @@ function entries() {
       if (item?.includes?.(".json") && item?.includes?.("bsparticles")) {
         const entry = {};
         const file = helper?.readFile({ path: `${globalFolder}/${item}` })
-        entry.uid = file?.documentId;
+        entry.uid = file?.documentId?.replace(/-/g, '');
         entry.title = file?.title;
         entry.documentId = file?.documentId;
         entry.ownerName = file?.ownerName;

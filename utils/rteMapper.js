@@ -646,6 +646,27 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
         ]
       }
     }
+
+    case "PROMO": {
+      return {}
+    }
+
+    case "HORIZONTAL_RULE": {
+      return {
+        uid,
+        "type": "hr",
+        "children": [
+          {
+            "text": ""
+          }
+        ],
+        "attrs": {
+          "style": {},
+          "redactor-attributes": {},
+          "dir": "ltr"
+        }
+      }
+    }
   }
 }
 
