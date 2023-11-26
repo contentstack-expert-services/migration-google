@@ -6,7 +6,7 @@ const readFile = ({ path }) => {
   try {
     const data = fs.readFileSync(path, "utf-8")
     if (typeof data === "string") {
-      return JSON.parse(data);
+      return JSON?.parse(data);
     }
     return data;
   } catch (err) {
@@ -16,7 +16,7 @@ const readFile = ({ path }) => {
 
 const writeFile = ({ path, data }) => {
   try {
-    fs.writeFileSync(path, data)
+    fs.writeFileSync(path, JSON.stringify(data))
   } catch (err) {
     throw err;
   }
@@ -37,7 +37,7 @@ const getHeadingType = ({ headingType }) => {
     const extractedNumber = match?.[0];
     return `h${extractedNumber}`
   } else {
-    console.log("No number found in the heading.");
+    // console.log("No number found in the heading.");
   }
 }
 

@@ -6,8 +6,9 @@ function checkTags(htmlString) {
   let tagName = null;
 
   tags.forEach(tag => {
-    tagName = tag?.replace(/<\s*\/?\s*([a-zA-Z0-9\-_]+)[^>]*>/, '$1');
-    if (tagName === "p") {
+    let newtagName = tag?.replace(/<\s*\/?\s*([a-zA-Z0-9\-_]+)[^>]*>/, '$1');
+    if (newtagName === "p") {
+      tagName = newtagName;
       tagCount[tagName] = (tagCount[tagName] || 0) + ((tag.startsWith('</p') || tag.startsWith('<p') ? -1 : 1));
       if (tagCount?.[tagName] < 1) {
         incompleteTag = tag;

@@ -1,4 +1,5 @@
 const read = require("fs-readdir-recursive");
+const _ = require("lodash");
 const toJsonSchema = require('to-json-schema');
 const { contentMapper } = require("../utils/contentMapper");
 const { flatten,
@@ -9,8 +10,8 @@ const { flatten,
   objectNester } = require("../utils");
 const rteMapper = require("../utils/rteMapper");
 const helper = require("../helper");
-const _ = require("lodash");
-const globalFolder = "/Users/umesh.more/Downloads/tmp";
+const path = require("path");
+const globalFolder = "/Users/umesh.more/Documents/tmp 2";
 const folder = read(globalFolder);
 
 
@@ -68,53 +69,58 @@ const sectionWrapper = (section, newData) => {
 
 
 const itemWrapper = (items) => {
-  //sdp_items_main
   const result = [];
   items?.forEach((item, i) => {
-    if (i === 4) {
-      const obj = {};
-      const sdpHeadingRte = rteMapper({ type: "doc" })
-      sdpHeadingRte?.children?.push(
-        rteMapper({
-          type: "heading",
-          headingType: "HEADING_TYPE_3",
-          text: item?.heading ?? ""
-        })
-      )
-      obj.sdp_items_field_type = {
-        sdp_article_field_type: item?.fieldType
-      }
-      obj.sdp_items_heading = {
-        sdp_heading_title: item?.heading ?? "",
-        sdp_heading_rte: sdpHeadingRte
-      }
-      const sdpMainRte = rteMapper({ type: "doc" })
-      // console.log("🚀 ~ file: entries.js:189 ~ items?.forEach ~  item?.body:", item?.body)
-      sdpMainRte?.children?.push(...objectNester(item?.body));
-      // console.log("🚀 ~ file: entries.js:184 ~ items?.forEach ~ sdpMainRte:", JSON.stringify(sdpMainRte))
+    const obj = {};
+    const sdpHeadingRte = rteMapper({ type: "doc" })
+    sdpHeadingRte?.children?.push(
+      rteMapper({
+        type: "heading",
+        headingType: "HEADING_TYPE_3",
+        text: item?.heading ?? ""
+      })
+    )
+    obj.sdp_items_field_type = {
+      sdp_article_field_type: item?.fieldType
     }
+    obj.sdp_items_heading = {
+      sdp_heading_title: item?.heading ?? "",
+      sdp_heading_rte: sdpHeadingRte
+    }
+    const sdpMainRte = rteMapper({ type: "doc" })
+    sdpMainRte?.children?.push(...objectNester(item?.body));
+    obj.sdp_items_main_body_rte = {
+      sdp_main_json_rte: sdpMainRte
+    }
+    result?.push(obj);
   })
+  return result;
 }
 
 function entries() {
-  // folder?.forEach?.((item, index) => {
-  //   if (item?.includes?.(".json") && item?.includes?.("documents") && index === 50) {
-  //     console.log("🚀 ~ file: entries.js:66 ~ entries ~ index:", index)
-  //     const entry = {};
-  //     const file = helper?.readFile({ path: `${globalFolder}/${item}` })
-  //     entry.uid = file?.documentId;
-  //     entry.title = file?.title;
-  //     entry.documentId = file?.documentId;
-  //     entry.ownerName = file?.ownerName;
-  //     entry.documentType = file?.documentType;
-  //     const flattenEntry = flatten?.(file?.content);
-  //     const keys = Object?.keys?.(flattenEntry);
-  //     const filSection = filteredArraySection(keys)
-  //     const section = separateSection(keys, filSection)
-  //     entry.content = rteMapper({ type: "doc" })
-  //     entry?.content?.children?.push(sectionWrapper(section, file?.content));
-  //   }
-  // })
+  try {
+    folder?.forEach?.((item, index) => {
+      if (item?.includes?.(".json") && item?.includes?.("bsparticles")) {
+        const entry = {};
+        const file = helper?.readFile({ path: `${globalFolder}/${item}` })
+        entry.uid = file?.documentId;
+        entry.title = file?.title;
+        entry.documentId = file?.documentId;
+        entry.ownerName = file?.ownerName;
+        entry.documentType = file?.documentType;
+        entry.sdp_items_main = itemWrapper(file?.source?.document?.items)
+        // const flattenEntry = flatten?.(file?.content);
+        // const keys = Object?.keys?.(flattenEntry);
+        // const filSection = filteredArraySection(keys)
+        // const section = separateSection(keys, filSection)
+        // entry.content = rteMapper({ type: "doc" })
+        // entry?.content?.children?.push(sectionWrapper(section, file?.content));
+        helper?.writeFile({ path: path.join(__dirname, `../google/artical/${entry?.uid}.json`), data: entry })
+      }
+    })
+  } catch (err) {
+    console.log("🚀 ~ file: entries.js:122 ~ entries ~ err:", err)
+  }
 
   const items = [
     {
@@ -3950,6 +3956,297 @@ function entries() {
                     ],
                     "colSpan": "1",
                     "rowSpan": "1"
+                  },
+                  {
+                    "data": [
+                      {
+                        "text": {
+                          "text": "\u003cp\u003e"
+                        }
+                      },
+                      {
+                        "unorderedListRichTextElement": {
+                          "contentId": "0000018b-b69b-d206-a3cf-f6bb5e810004",
+                          "items": [
+                            {
+                              "contentId": "0000018b-b69b-d206-a3cf-f6bb5e810005",
+                              "items": [
+                                {
+                                  "text": {
+                                    "text": "\u003cp\u003eScreen lock: A 6-character alphanumeric password or 8-digit PIN.\u003cbr\u003eFingerprint unlock is allowed.\u003cbr\u003eFace unlock is only allowed on Pixel 4 (XL).\u003cbr\u003e\u003cb\u003eNote: Pixel 7 (Pro)\u003c/b\u003e can only use face unlock for the personal profile. To enable this head to: Settings"
+                                  }
+                                },
+                                {
+                                  "snippetRichText": {
+                                    "contentId": "0000018a-d676-df32-abfb-def724820000",
+                                    "schemaType": "SNIPPET",
+                                    "snippet": {
+                                      "contentId": "00000185-3611-d5bd-a3c5-fed7338c0000",
+                                      "items": [
+                                        {
+                                          "imageRichTextElement": {
+                                            "altText": "and then",
+                                            "contentId": "00000186-3328-d85b-a38e-bfbba8ef0000",
+                                            "height": "18",
+                                            "image": {
+                                              "contentId": "00000185-3611-d5bd-a3c5-fed7334a0000",
+                                              "image": {
+                                                "json": "{\"src\":\"https://www.gstatic.com/servicedesk_bsp/a9/7a/7b5ae94240d1a97198e5f05082f7/f514d258db660783a353ba8f1cee7f707f70640f82c428f8be470821ee246ce6d5a533bf9a4f022f1e9c08fc87ea12cabdfd25a86a14eff2df141aa1fd317ce4.png\",\"width\":\"24\",\"height\":\"24\"}",
+                                                "entries": [
+                                                  {
+                                                    "key": "src",
+                                                    "value": "https://www.gstatic.com/servicedesk_bsp/a9/7a/7b5ae94240d1a97198e5f05082f7/f514d258db660783a353ba8f1cee7f707f70640f82c428f8be470821ee246ce6d5a533bf9a4f022f1e9c08fc87ea12cabdfd25a86a14eff2df141aa1fd317ce4.png"
+                                                  },
+                                                  {
+                                                    "key": "width",
+                                                    "value": "24"
+                                                  },
+                                                  {
+                                                    "key": "height",
+                                                    "value": "24"
+                                                  }
+                                                ]
+                                              },
+                                              "narrowImage": {
+                                                "json": "{\"src\":\"https://www.gstatic.com/servicedesk_bsp/a9/7a/7b5ae94240d1a97198e5f05082f7/f514d258db660783a353ba8f1cee7f707f70640f82c428f8be470821ee246ce6d5a533bf9a4f022f1e9c08fc87ea12cabdfd25a86a14eff2df141aa1fd317ce4.png\",\"width\":\"24\",\"height\":\"24\"}",
+                                                "entries": [
+                                                  {
+                                                    "key": "src",
+                                                    "value": "https://www.gstatic.com/servicedesk_bsp/a9/7a/7b5ae94240d1a97198e5f05082f7/f514d258db660783a353ba8f1cee7f707f70640f82c428f8be470821ee246ce6d5a533bf9a4f022f1e9c08fc87ea12cabdfd25a86a14eff2df141aa1fd317ce4.png"
+                                                  },
+                                                  {
+                                                    "key": "width",
+                                                    "value": "24"
+                                                  },
+                                                  {
+                                                    "key": "height",
+                                                    "value": "24"
+                                                  }
+                                                ]
+                                              },
+                                              "schemaType": "IMAGE",
+                                              "urlData": "https://www.gstatic.com/servicedesk_bsp/a9/7a/7b5ae94240d1a97198e5f05082f7/f514d258db660783a353ba8f1cee7f707f70640f82c428f8be470821ee246ce6d5a533bf9a4f022f1e9c08fc87ea12cabdfd25a86a14eff2df141aa1fd317ce4.png"
+                                            },
+                                            "schemaType": "IMAGE_RICH_TEXT",
+                                            "width": "18"
+                                          }
+                                        },
+                                        {
+                                          "text": {
+                                            "text": "\u003cp\u003e\u003c/p\u003e"
+                                          }
+                                        }
+                                      ],
+                                      "name": "Standard \u003e Icon \u003e and then",
+                                      "schemaType": "SNIPPET"
+                                    }
+                                  }
+                                },
+                                {
+                                  "text": {
+                                    "text": "Security \u0026amp; Privacy"
+                                  }
+                                },
+                                {
+                                  "snippetRichText": {
+                                    "contentId": "0000018a-d676-df32-abfb-def724820000",
+                                    "schemaType": "SNIPPET",
+                                    "snippet": {
+                                      "contentId": "00000185-3611-d5bd-a3c5-fed7338c0000",
+                                      "items": [
+                                        {
+                                          "imageRichTextElement": {
+                                            "altText": "and then",
+                                            "contentId": "00000186-3328-d85b-a38e-bfbba8ef0000",
+                                            "height": "18",
+                                            "image": {
+                                              "contentId": "00000185-3611-d5bd-a3c5-fed7334a0000",
+                                              "image": {
+                                                "json": "{\"src\":\"https://www.gstatic.com/servicedesk_bsp/a9/7a/7b5ae94240d1a97198e5f05082f7/f514d258db660783a353ba8f1cee7f707f70640f82c428f8be470821ee246ce6d5a533bf9a4f022f1e9c08fc87ea12cabdfd25a86a14eff2df141aa1fd317ce4.png\",\"width\":\"24\",\"height\":\"24\"}",
+                                                "entries": [
+                                                  {
+                                                    "key": "src",
+                                                    "value": "https://www.gstatic.com/servicedesk_bsp/a9/7a/7b5ae94240d1a97198e5f05082f7/f514d258db660783a353ba8f1cee7f707f70640f82c428f8be470821ee246ce6d5a533bf9a4f022f1e9c08fc87ea12cabdfd25a86a14eff2df141aa1fd317ce4.png"
+                                                  },
+                                                  {
+                                                    "key": "width",
+                                                    "value": "24"
+                                                  },
+                                                  {
+                                                    "key": "height",
+                                                    "value": "24"
+                                                  }
+                                                ]
+                                              },
+                                              "narrowImage": {
+                                                "json": "{\"src\":\"https://www.gstatic.com/servicedesk_bsp/a9/7a/7b5ae94240d1a97198e5f05082f7/f514d258db660783a353ba8f1cee7f707f70640f82c428f8be470821ee246ce6d5a533bf9a4f022f1e9c08fc87ea12cabdfd25a86a14eff2df141aa1fd317ce4.png\",\"width\":\"24\",\"height\":\"24\"}",
+                                                "entries": [
+                                                  {
+                                                    "key": "src",
+                                                    "value": "https://www.gstatic.com/servicedesk_bsp/a9/7a/7b5ae94240d1a97198e5f05082f7/f514d258db660783a353ba8f1cee7f707f70640f82c428f8be470821ee246ce6d5a533bf9a4f022f1e9c08fc87ea12cabdfd25a86a14eff2df141aa1fd317ce4.png"
+                                                  },
+                                                  {
+                                                    "key": "width",
+                                                    "value": "24"
+                                                  },
+                                                  {
+                                                    "key": "height",
+                                                    "value": "24"
+                                                  }
+                                                ]
+                                              },
+                                              "schemaType": "IMAGE",
+                                              "urlData": "https://www.gstatic.com/servicedesk_bsp/a9/7a/7b5ae94240d1a97198e5f05082f7/f514d258db660783a353ba8f1cee7f707f70640f82c428f8be470821ee246ce6d5a533bf9a4f022f1e9c08fc87ea12cabdfd25a86a14eff2df141aa1fd317ce4.png"
+                                            },
+                                            "schemaType": "IMAGE_RICH_TEXT",
+                                            "width": "18"
+                                          }
+                                        },
+                                        {
+                                          "text": {
+                                            "text": "\u003cp\u003e\u003c/p\u003e"
+                                          }
+                                        }
+                                      ],
+                                      "name": "Standard \u003e Icon \u003e and then",
+                                      "schemaType": "SNIPPET"
+                                    }
+                                  }
+                                },
+                                {
+                                  "text": {
+                                    "text": "More security settings"
+                                  }
+                                },
+                                {
+                                  "snippetRichText": {
+                                    "contentId": "0000018a-d676-df32-abfb-def724820000",
+                                    "schemaType": "SNIPPET",
+                                    "snippet": {
+                                      "contentId": "00000185-3611-d5bd-a3c5-fed7338c0000",
+                                      "items": [
+                                        {
+                                          "imageRichTextElement": {
+                                            "altText": "and then",
+                                            "contentId": "00000186-3328-d85b-a38e-bfbba8ef0000",
+                                            "height": "18",
+                                            "image": {
+                                              "contentId": "00000185-3611-d5bd-a3c5-fed7334a0000",
+                                              "image": {
+                                                "json": "{\"src\":\"https://www.gstatic.com/servicedesk_bsp/a9/7a/7b5ae94240d1a97198e5f05082f7/f514d258db660783a353ba8f1cee7f707f70640f82c428f8be470821ee246ce6d5a533bf9a4f022f1e9c08fc87ea12cabdfd25a86a14eff2df141aa1fd317ce4.png\",\"width\":\"24\",\"height\":\"24\"}",
+                                                "entries": [
+                                                  {
+                                                    "key": "src",
+                                                    "value": "https://www.gstatic.com/servicedesk_bsp/a9/7a/7b5ae94240d1a97198e5f05082f7/f514d258db660783a353ba8f1cee7f707f70640f82c428f8be470821ee246ce6d5a533bf9a4f022f1e9c08fc87ea12cabdfd25a86a14eff2df141aa1fd317ce4.png"
+                                                  },
+                                                  {
+                                                    "key": "width",
+                                                    "value": "24"
+                                                  },
+                                                  {
+                                                    "key": "height",
+                                                    "value": "24"
+                                                  }
+                                                ]
+                                              },
+                                              "narrowImage": {
+                                                "json": "{\"src\":\"https://www.gstatic.com/servicedesk_bsp/a9/7a/7b5ae94240d1a97198e5f05082f7/f514d258db660783a353ba8f1cee7f707f70640f82c428f8be470821ee246ce6d5a533bf9a4f022f1e9c08fc87ea12cabdfd25a86a14eff2df141aa1fd317ce4.png\",\"width\":\"24\",\"height\":\"24\"}",
+                                                "entries": [
+                                                  {
+                                                    "key": "src",
+                                                    "value": "https://www.gstatic.com/servicedesk_bsp/a9/7a/7b5ae94240d1a97198e5f05082f7/f514d258db660783a353ba8f1cee7f707f70640f82c428f8be470821ee246ce6d5a533bf9a4f022f1e9c08fc87ea12cabdfd25a86a14eff2df141aa1fd317ce4.png"
+                                                  },
+                                                  {
+                                                    "key": "width",
+                                                    "value": "24"
+                                                  },
+                                                  {
+                                                    "key": "height",
+                                                    "value": "24"
+                                                  }
+                                                ]
+                                              },
+                                              "schemaType": "IMAGE",
+                                              "urlData": "https://www.gstatic.com/servicedesk_bsp/a9/7a/7b5ae94240d1a97198e5f05082f7/f514d258db660783a353ba8f1cee7f707f70640f82c428f8be470821ee246ce6d5a533bf9a4f022f1e9c08fc87ea12cabdfd25a86a14eff2df141aa1fd317ce4.png"
+                                            },
+                                            "schemaType": "IMAGE_RICH_TEXT",
+                                            "width": "18"
+                                          }
+                                        },
+                                        {
+                                          "text": {
+                                            "text": "\u003cp\u003e\u003c/p\u003e"
+                                          }
+                                        }
+                                      ],
+                                      "name": "Standard \u003e Icon \u003e and then",
+                                      "schemaType": "SNIPPET"
+                                    }
+                                  }
+                                },
+                                {
+                                  "text": {
+                                    "text": "Disable ‘Use one lock for work profile.’ Check "
+                                  }
+                                },
+                                {
+                                  "externalLink": {
+                                    "contentId": "0000018b-b69b-d206-a3cf-f6bb5f320000",
+                                    "href": "http://goto.google.com/pixel-face-auth-in-corp",
+                                    "linkText": "go/pixel-face-auth-in-corp",
+                                    "schemaType": "EXTERNAL",
+                                    "target": "_blank",
+                                    "linkRichText": [
+                                      {
+                                        "text": {
+                                          "text": "\u003cp\u003ego/pixel-face-auth-in-corp\u003c/p\u003e"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                },
+                                {
+                                  "text": {
+                                    "text": " for more details.\u003c/p\u003e"
+                                  }
+                                }
+                              ],
+                              "schemaType": "LIST_ITEM"
+                            },
+                            {
+                              "contentId": "0000018b-b69b-d206-a3cf-f6bb5e810006",
+                              "items": [
+                                {
+                                  "text": {
+                                    "text": "\u003cp\u003eNon-biometric unlock required every 10 hours.\u003c/p\u003e"
+                                  }
+                                }
+                              ],
+                              "schemaType": "LIST_ITEM"
+                            },
+                            {
+                              "contentId": "0000018b-b69b-d206-a3cf-f6bb5e810007",
+                              "items": [
+                                {
+                                  "text": {
+                                    "text": "\u003cp\u003eAutomatic Screen lock: after 5 minutes of inactivity.\u003c/p\u003e"
+                                  }
+                                }
+                              ],
+                              "schemaType": "LIST_ITEM"
+                            }
+                          ],
+                          "schemaType": "UNORDERED_LIST"
+                        }
+                      },
+                      {
+                        "text": {
+                          "text": "\u003c/p\u003e "
+                        }
+                      }
+                    ],
+                    "colSpan": "1",
+                    "rowSpan": "1"
                   }
                 ]
               },
@@ -4855,14 +5152,13 @@ function entries() {
             "schemaType": "TABLE",
             "tableStyle": "Nice Table"
           }
-        }
+        },
       ],
       "contentId": "0000018a-3d08-d980-a3db-bf0c67340000",
       "fieldType": "Intro",
       "schemaType": "LISTICLE_ITEM"
     },
   ];
-  itemWrapper(items)
 }
 
 

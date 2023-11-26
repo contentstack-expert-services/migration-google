@@ -105,6 +105,7 @@ const paragraphWrapper = (data) => {
       }
     } else {
       if (chd?.text && chd?.hasIncomplete === false) {
+        // console.log("🚀 ~ file: index.js:108 ~ paragraphArray?.result?.forEach ~ chd?.incompleteTag:", chd?.text && chd?.incompleteTag === null)
         obj?.children?.push({ text: chd?.text })
       } else {
         obj?.children?.push(chd)
