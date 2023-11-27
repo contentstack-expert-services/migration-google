@@ -451,7 +451,7 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
       entry.sdp_accordion_items = all;
       entry.title = "umesh";
       entry.uid = data?.contentId?.replace(/-/g, '');
-      helper.writeFile({ path: path.join(__dirname, `../google/accordian/${entry?.uid}.json`), data: entry })
+      helper.writeFile({ path: path.join(__dirname, `../google/sdp_accordion_component/${entry?.uid}.json`), data: entry })
       return {
         uid,
         "type": "reference",
@@ -667,7 +667,34 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
         }
       }
     }
+
+    case "VIDEO_RICH_TEXT_ELEMENT": {
+      return {}
+    }
+
+    case "HTML_EMBED": {
+      const htmlEntry = {
+        "title": data?.ampFallbackUrl,
+        "sdp_html_embed_raw_html": data?.rawHtml,
+        "uid": data?.contentId?.replace(/-/g, ''),
+      }
+      helper.writeFile({ path: path.join(__dirname, `../google/sdp_html_embed_component/${htmlEntry?.uid}.json`), data: htmlEntry })
+      return {
+        uid,
+        "type": "reference",
+        "attrs": {
+          "display-type": "block",
+          "type": "entry",
+          "class-name": "embedded-entry redactor-component block-entry",
+          "entry-uid": data?.contentId?.replace(/-/g, ''),
+          "locale": "en-us",
+          "content-type-uid": "sdp_html_embed_component"
+        }
+      }
+    }
+
   }
 }
+
 
 module.exports = rteMapper
