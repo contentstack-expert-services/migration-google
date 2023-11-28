@@ -186,5 +186,5 @@ module.exports = {
   contentArray,
   objectNester,
   paragraphWrapper,
-  extractItemsBetweenTags
+  extractItemsBetweenTags,
 }

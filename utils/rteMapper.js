@@ -1,10 +1,11 @@
+const path = require("path");
 const _ = require("lodash");
 const checkTags = require("./checkTags")
 const helper = require("../helper")
 const paragraphWrapper = require("./paragraphWrapper")
 const extractItemsBetweenTags = require("./extractItemsBetweenTags");
 const accordionEntryConveter = require("./accordion");
-const path = require("path");
+const getDropdownValuePromo = require("./dropValues");
 
 const ulCreater = ({ data }) => {
   const list = [];
@@ -305,6 +306,69 @@ const snippetCreate = ({ data }) => {
   return snippetWrapper;
 }
 
+const createPromo = ({ data }) => {
+  const entry = {
+    "title": data?.internalName,
+    "sdp_main": {
+      "sdp_promo_module__item": {
+        "sdp_promo_module_promo_type": "no-link",
+        "sdp_promo_module_internal_link": [],
+        "sdp_promo_module_external_link": {
+          "title": "",
+          "href": ""
+        },
+        "sdp_promo_module_anchor_target": "same-window",
+        "sdp_promo_module_anchor_text": ""
+      },
+      "sdp_promo_cta_buttons": {
+        "sdp_promo_module_call_to_action_button_text": {
+          "type": "doc",
+          "attrs": {},
+          "uid": helper?.uidGenrator(),
+          "children": [
+            {
+              "uid": helper?.uidGenrator(),
+              "type": "p",
+              "attrs": {
+                "style": {},
+                "redactor-attributes": {},
+                "dir": "ltr"
+              },
+              "children": [
+                {
+                  "text": data?.callToActionButtonText,
+                }
+              ]
+            }
+          ],
+        },
+        "sdp_promo_module_cta_alignment": getDropdownValuePromo(data?.alignment),
+        "sdp_promo_module__cta_button_type": getDropdownValuePromo(data?.buttonType)
+      }
+    },
+    "sdp_overrides": {
+      "sdp_promo_module_category": {
+        "sdp_basic_rte": ""
+      },
+      "sdp_anchor": {
+        "sdp_anchor_title": ""
+      }
+    },
+  };
+  if (data?.primaryCta?.internalLink?.schemaType) {
+    entry.sdp_main.sdp_promo_module__item.sdp_promo_module_promo_type =
+      data?.primaryCta?.internalLink?.schemaType === "INTERNAL" ?
+        "internal" : "external"
+    entry.sdp_main.sdp_promo_module__item?.[
+      data?.primaryCta?.internalLink?.schemaType === "INTERNAL" ?
+        "sdp_promo_module_internal_link"
+        : "sdp_promo_module_external_link"
+    ] = {
+      "title": "",
+      "href": ""
+    }
+  }
+}
 
 function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {}, data }) {
   const uid = helper?.uidGenrator();
@@ -648,7 +712,19 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
     }
 
     case "PROMO": {
-      return {}
+      createPromo({ data })
+      return {
+        uid,
+        "type": "reference",
+        "attrs": {
+          "display-type": "block",
+          "type": "entry",
+          "class-name": "embedded-entry redactor-component block-entry",
+          "entry-uid": data?.contentId?.replace(/-/g, ''),
+          "locale": "en-us",
+          "content-type-uid": "sdp_page_promo_module"
+        }
+      }
     }
 
     case "HORIZONTAL_RULE": {

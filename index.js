@@ -2,7 +2,7 @@ const helper = require("./helper")
 const _export = [];
 
 const modulesList = [
-  // "content_type",
+  "categories",
   "entries"
 ];
 
