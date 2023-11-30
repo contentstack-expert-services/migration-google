@@ -199,6 +199,22 @@ const tableCreate = ({ data }) => {
   if (data?.bodyRows) {
     table?.children.push(bodyCreater({ data: data?.bodyRows }))
   }
+  let rows = 0;
+  let col = 0;
+  if (table?.children?.[0]?.type === "thead") {
+    rows += table?.children?.[0]?.children?.length;
+    col = table?.children?.[0]?.children?.[0]?.children?.length === 0 ? table?.children?.[0]?.children?.[1]?.children?.length : table?.children?.[0]?.children?.[0]?.children?.length;
+  }
+  if (table?.children?.[0]?.type === "tbody") {
+    rows += table?.children?.[0]?.children?.length;
+    col = table?.children?.[0]?.children?.[0]?.children?.length === 0 ? table?.children?.[0]?.children?.[1]?.children?.length : table?.children?.[0]?.children?.[0]?.children?.length;
+  }
+  if (table?.children?.[1]?.type === "tbody") {
+    rows += table?.children?.[1]?.children?.length;
+    col = table?.children?.[1]?.children?.[0]?.children?.length === 0 ? table?.children?.[1]?.children?.[1]?.children?.length : table?.children?.[1]?.children?.[0]?.children?.length;;
+  }
+  table.attrs.cols = col;
+  table.attrs.rows = rows;
   return table;
 }
 
@@ -241,7 +257,7 @@ const imageCreate = ({ data }) => {
 
 const snippetCreate = ({ data }) => {
   const snippetWrapper = {
-    "type": "div",
+    "type": "doc",
     attrs: {
       type: "snippet",
       id: data?.contentId,
@@ -303,11 +319,57 @@ const snippetCreate = ({ data }) => {
     }
   })
   snippetWrapper.children = newData;
-  return snippetWrapper;
+  const entry = {
+    "uid": data?.contentId?.replace?.(/-/g, ''),
+    "title": data?.snippet?.name,
+    "sdp_snippet_main_body": {
+      "sdp_main_json_rte": snippetWrapper,
+    },
+    "sdp_seo": {
+      "sdp_meta_title": "",
+      "sdp_meta_description": "",
+      "sdp_keywords": "",
+      "sdp_enable_search_indexing": true
+    },
+    "sdp_migration": {
+      "bsp_entry_id": "",
+      "bsp_entry_type": "",
+      "connect_composer_id": "",
+      "connect_composer_type": "",
+      "sdp_article_buganizerid": ""
+    }
+  }
+  helper.handleFile({ locale: "en-us", contentType: "sdp_snippet_component", entry, uid: entry?.uid })
+  return {
+    uid: helper?.uidGenrator(),
+    "type": "reference",
+    "attrs": {
+      "display-type": "block",
+      "type": "entry",
+      "class-name": "embedded-entry redactor-component block-entry",
+      "entry-uid": entry?.uid,
+      "locale": "en-us",
+      "content-type-uid": "sdp_snippet_component"
+    }
+  }
 }
+
+
+
+function extractUidFromUrl(url, type = "") {
+  const urlArray = url?.split("/")
+  if (type === "uid") {
+    return urlArray?.[3]?.replace?.(/-/g, '')
+  } else {
+    return urlArray?.[2]
+  }
+}
+
+
 
 const createPromo = ({ data }) => {
   const entry = {
+    uid: data?.contentId?.replace(/-/g, ''),
     "title": data?.internalName,
     "sdp_main": {
       "sdp_promo_module__item": {
@@ -342,7 +404,7 @@ const createPromo = ({ data }) => {
             }
           ],
         },
-        "sdp_promo_module_cta_alignment": getDropdownValuePromo(data?.alignment),
+        "sdp_promo_module_cta_alignment": getDropdownValuePromo(data?.alignment ?? "Center"),
         "sdp_promo_module__cta_button_type": getDropdownValuePromo(data?.buttonType)
       }
     },
@@ -355,18 +417,34 @@ const createPromo = ({ data }) => {
       }
     },
   };
-  if (data?.primaryCta?.internalLink?.schemaType) {
-    entry.sdp_main.sdp_promo_module__item.sdp_promo_module_promo_type =
-      data?.primaryCta?.internalLink?.schemaType === "INTERNAL" ?
-        "internal" : "external"
-    entry.sdp_main.sdp_promo_module__item?.[
-      data?.primaryCta?.internalLink?.schemaType === "INTERNAL" ?
-        "sdp_promo_module_internal_link"
-        : "sdp_promo_module_external_link"
-    ] = {
-      "title": "",
-      "href": ""
+  if (data?.primaryCta) {
+    for (const [key, value] of Object.entries(data?.primaryCta)) {
+      if (value?.target) {
+        entry.sdp_main.sdp_promo_module__item.sdp_promo_module_anchor_target = value?.target === "_blank" ? "new-window" : "same-window"
+      }
+      entry.sdp_main.sdp_promo_module__item.sdp_promo_module_promo_type =
+        value?.schemaType === "INTERNAL" ?
+          "internal" : "external"
+      if (value?.schemaType === "INTERNAL") {
+        entry.sdp_main.sdp_promo_module__item.sdp_promo_module_internal_link =
+          [
+            {
+              "uid": extractUidFromUrl(value?.path, "uid"),
+              "_content_type_uid": extractUidFromUrl(value?.path) === "article" ? "sdp_knowledge_article" : ""
+            }
+          ]
+        entry.sdp_main.sdp_promo_module__item.sdp_promo_module_external_link = {
+          "title": value?.linkText,
+          "href": value?.href
+        }
+      } else {
+        entry.sdp_main.sdp_promo_module__item.sdp_promo_module_external_link = {
+          "title": value?.linkText,
+          "href": value?.href
+        }
+      }
     }
+    helper.handleFile({ locale: "en-us", contentType: "sdp_promo_component", entry, uid: entry?.uid })
   }
 }
 
@@ -515,7 +593,7 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
       entry.sdp_accordion_items = all;
       entry.title = "umesh";
       entry.uid = data?.contentId?.replace(/-/g, '');
-      helper.writeFile({ path: path.join(__dirname, `../google/sdp_accordion_component/${entry?.uid}.json`), data: entry })
+      helper.handleFile({ locale: "en-us", contentType: "sdp_accordion_component", entry, uid: entry?.uid })
       return {
         uid,
         "type": "reference",
@@ -745,7 +823,22 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
     }
 
     case "VIDEO_RICH_TEXT_ELEMENT": {
-      return {}
+      const obj = Object.entries(data?.video)?.[0]?.[1]
+      return {
+        "uid": helper?.uidGenrator(),
+        "type": "embed",
+        "attrs": {
+          "src": obj?.googleDriveVideoUrl,
+          "style": {},
+          "redactor-attributes": {},
+          "dir": "ltr"
+        },
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      }
     }
 
     case "HTML_EMBED": {
@@ -754,7 +847,7 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
         "sdp_html_embed_raw_html": data?.rawHtml,
         "uid": data?.contentId?.replace(/-/g, ''),
       }
-      helper.writeFile({ path: path.join(__dirname, `../google/sdp_html_embed_component/${htmlEntry?.uid}.json`), data: htmlEntry })
+      helper.handleFile({ locale: "en-us", contentType: "sdp_html_embed_component", entry: htmlEntry, uid: htmlEntry?.uid })
       return {
         uid,
         "type": "reference",
@@ -769,7 +862,29 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
       }
     }
 
+    case "EMBED": {
+      return {
+        "type": "embed",
+        "attrs": {
+          "src": data?.url,
+          "style": {},
+          "redactor-attributes": {
+            "src": data?.url,
+          }
+        },
+        "uid": "df8c9bd80d554a5983970dbe9bbccb7c",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      }
+    }
+    default: {
+      console.log(type, "missed")
+    }
   }
+
 }
 
 

@@ -1,5 +1,6 @@
 const fs = require("fs");
 const _ = require("lodash");
+const path = require("path");
 const { v4 } = require('uuid');
 
 const readFile = ({ path }) => {
@@ -41,10 +42,61 @@ const getHeadingType = ({ headingType }) => {
   }
 }
 
+const writeEntry = ({ data, contentType, locale }) => {
+  fs.writeFileSync(
+    path.join(
+      __dirname,
+      `../google/entries/${contentType}`,
+      `${locale}.json`
+    ),
+    JSON.stringify(data, null, 4),
+    (err) => {
+      if (err) throw err;
+    }
+  );
+}
+
+const handleFile = ({ locale, contentType, entry, uid }) => {
+  let data = {};
+  if (
+    fs.existsSync(
+      path.join(
+        __dirname,
+        `../google/entries/${contentType}`
+      )
+    )
+  ) {
+    const prevEntries = readFile({
+      path:
+        path.join(
+          __dirname,
+          `../google/entries/${contentType}`,
+          `${locale}.json`
+        )
+    })
+    if (prevEntries) {
+      data = prevEntries
+    }
+    data[uid] = entry;
+    writeEntry({ data, contentType, locale })
+  } else {
+    fs.mkdirSync(
+      path.join(
+        __dirname,
+        `../google/entries/${contentType}`
+      ),
+      { recursive: true }
+    );
+    data[uid] = entry;
+    writeEntry({ data, contentType, locale })
+  }
+}
+
 module.exports = {
   readFile,
   writeFile,
   getValue,
   uidGenrator,
-  getHeadingType
+  getHeadingType,
+  handleFile
 }

@@ -13,6 +13,7 @@ const {
 const rteMapper = require("../utils/rteMapper");
 const helper = require("../helper");
 const path = require("path");
+const { validated } = require("../utils/aaray");
 const globalFolder = "/Users/umesh.more/Documents/tmp 2";
 const folder = read(globalFolder);
 
@@ -110,8 +111,39 @@ function entries() {
         entry.documentId = file?.documentId;
         entry.ownerName = file?.ownerName;
         entry.documentType = file?.documentType;
-        entry.sdp_items_main = itemWrapper(file?.source?.document?.items)
-        helper?.writeFile({ path: path.join(__dirname, `../google/sdp_knowledge_article/${entry?.uid}.json`), data: entry })
+        entry.sdp_article_subtext = file?.source?.document?.subtext;
+        entry.sdp_article_keywords = file?.source?.document?.keywords?.map((item) => item)?.join(",");
+        entry.sdp_items_global_insert_items = [{ sdp_items_main: itemWrapper(file?.source?.document?.items) }]
+        entry.migration = {
+          "bsp_entry_id": file?.documentId?.replace(/-/g, ''),
+          "bsp_entry_type": file?.documentType,
+          "connect_composer_id": "",
+          "connect_composer_type": "",
+          "sdp_article_buganizerid": file?.source?.document?.buganizerId,
+        };
+        entry.sdp_article_validation_status = {
+          "sdp_article_validation_status_name": file?.source?.document?.validationStatus?.displayName,
+          "sdp_article_validation_status": validated?.find((item) => item.type === file?.source?.document?.validationStatus?.displayName)?.value ?? "not-validated",
+          "sdp_article_validation_status_change_date": null
+        };
+        entry.seo = {
+          "sdp_meta_title": "",
+          "sdp_meta_description": "",
+          "sdp_keywords": "",
+          "sdp_enable_search_indexing": true
+        };
+        entry.sdp_articlemeta_data = {
+          sdp_article_categories: file?.categoryIds?.map((item) => {
+            return {
+              "uid": item?.replace?.(/-/g, ''),
+              "_content_type_uid": "sdp_categories"
+            }
+          })
+        };
+        if (file?.source?.document?.validationStatusChangeDate) {
+          entry.sdp_article_validation_status.sdp_article_validation_status_change_date = file?.source?.document?.validationStatusChangeDate;
+        }
+        helper.handleFile({ locale: "en-us", contentType: "sdp_knowledge_article", entry, uid: entry?.uid })
       }
     })
   } catch (err) {

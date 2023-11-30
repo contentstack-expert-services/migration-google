@@ -38,7 +38,7 @@ function categories() {
       if (file?.source?.category?.description?.length) {
         entry.category_description = { json_rte: objectNester(file?.source?.category?.description) };
       }
-      helper?.writeFile({ path: path.join(__dirname, `../google/sdp_categories/${entry?.uid}.json`), data: entry })
+      helper.handleFile({ locale: "en-us", contentType: "sdp_categories", entry, uid: entry?.uid })
     }
   })
 }
