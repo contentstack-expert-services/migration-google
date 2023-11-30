@@ -44,7 +44,7 @@ const paragraphWrapper = (data) => {
     }
   })
   data?.forEach((item, index) => {
-    if (paragraphArray?.startIndex && paragraphArray?.endIndex) {
+    if (typeof paragraphArray?.startIndex === "number" && typeof paragraphArray?.endIndex === "number") {
       if (paragraphArray?.startIndex === index) {
         newData?.push(obj);
       }

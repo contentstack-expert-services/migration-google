@@ -105,15 +105,15 @@ const paragraphWrapper = (data) => {
       }
     } else {
       if (chd?.text && chd?.hasIncomplete === false) {
-        // console.log("🚀 ~ file: index.js:108 ~ paragraphArray?.result?.forEach ~ chd?.incompleteTag:", chd?.text && chd?.incompleteTag === null)
         obj?.children?.push({ text: chd?.text })
       } else {
         obj?.children?.push(chd)
       }
     }
   })
+
   data?.forEach((item, index) => {
-    if (paragraphArray?.startIndex && paragraphArray?.endIndex) {
+    if (typeof paragraphArray?.startIndex === "number" && typeof paragraphArray?.endIndex === "number") {
       if (paragraphArray?.startIndex === index) {
         newData?.push(obj);
       }
@@ -121,14 +121,22 @@ const paragraphWrapper = (data) => {
         if (item?.tagName === "p") {
           newData?.push(rteMapper({ type: "paragraph", text: item?.text }))
         } else {
-          newData?.push(item);
+          if (item?.tagName === null) {
+            newData?.push({ text: item?.text, myra: "myra" });
+          } else {
+            newData?.push(item);
+          }
         }
       }
     } else {
       if (item?.tagName === "p") {
         newData?.push(rteMapper({ type: "paragraph", text: item?.text }))
       } else {
-        newData?.push(item);
+        if (item?.tagName === null) {
+          newData?.push({ text: item?.text, nutan: "nutan" });
+        } else {
+          newData?.push(item);
+        }
       }
     }
   })
