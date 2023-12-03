@@ -71,7 +71,7 @@ const sectionWrapper = (section, newData) => {
 
 
 
-const itemWrapper = (items) => {
+const itemWrapper = (items, title) => {
   const result = [];
   items?.forEach((item, i) => {
     const obj = {};
@@ -91,7 +91,7 @@ const itemWrapper = (items) => {
       sdp_heading_rte: sdpHeadingRte
     }
     const sdpMainRte = rteMapper({ type: "doc" })
-    sdpMainRte?.children?.push(...objectNester(item?.body));
+    sdpMainRte?.children?.push(...objectNester(item?.body, title));
     obj.sdp_items_main_body_rte = {
       sdp_main_json_rte: sdpMainRte
     }
@@ -113,7 +113,7 @@ function entries() {
         entry.documentType = file?.documentType;
         entry.sdp_article_subtext = file?.source?.document?.subtext;
         entry.sdp_article_keywords = file?.source?.document?.keywords?.map((item) => item)?.join(",");
-        entry.sdp_items_global_insert_items = [{ sdp_items_main: itemWrapper(file?.source?.document?.items) }]
+        entry.sdp_items_global_insert_items = [{ sdp_items_main: itemWrapper(file?.source?.document?.items, file?.title) }]
         entry.migration = {
           "bsp_entry_id": file?.documentId?.replace(/-/g, ''),
           "bsp_entry_type": file?.documentType,

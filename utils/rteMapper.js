@@ -54,14 +54,19 @@ const liCreate = ({ data }) => {
         newData?.push(para);
       }
       if (index > paragraphArray?.endIndex || index < paragraphArray?.startIndex) {
-        if (item?.tagName === "p") {
+        if (item?.tagName === "p"
+          || item?.tagName === "i"
+          || item?.tagName === "br"
+          || item?.tagName === "b" ||
+          item?.tagName === null
+        ) {
           newData?.push(rteMapper({ type: "paragraph", text: item?.text }))
         } else {
           newData?.push(item);
         }
       }
     } else {
-      if (item?.tagName === "p") {
+      if (item?.tagName === "p" || item?.tagName === "i" || item?.tagName === null) {
         newData?.push(rteMapper({ type: "paragraph", text: item?.text }))
       } else {
         newData?.push(item);
@@ -74,14 +79,22 @@ const liCreate = ({ data }) => {
 const pageComponentCreater = ({ item, type }) => {
   const newObjTr = {
     "type": "tr",
-    "attrs": {},
+    "attrs": {
+      "style": {},
+      "redactor-attributes": {},
+      "dir": "ltr"
+    },
     "children": [],
     "uid": helper?.uidGenrator(),
   };
   item?.cells?.forEach((head) => {
     const tableHead = {
       type,
-      "attrs": {},
+      "attrs": {
+        "style": {},
+        "redactor-attributes": {},
+        "dir": "ltr"
+      },
       "children": [],
       "uid": helper?.uidGenrator()
     };
@@ -126,20 +139,43 @@ const pageComponentCreater = ({ item, type }) => {
           if (item?.tagName === "p") {
             newData?.push(rteMapper({ type: "paragraph", text: item?.text }))
           } else {
-            newData?.push(item);
+            if (item?.text) {
+              newData?.push(rteMapper({ type: "paragraph", text: item?.text }))
+            } else {
+              newData?.push(item);
+            }
           }
         }
       } else {
         if (item?.tagName === "p") {
           newData?.push(rteMapper({ type: "paragraph", text: item?.text }))
         } else {
-          newData?.push(item);
+          if (item?.text) {
+            newData?.push(rteMapper({ type: "paragraph", text: item?.text }))
+          } else {
+            newData?.push(item);
+          }
         }
       }
     })
     tableHead.children = newData;
+    if (tableHead?.children?.length === 0) {
+      tableHead.children = [rteMapper({ type: "paragraph", text: "" })]
+    }
     newObjTr.children.push(tableHead);
   })
+  if (newObjTr?.children?.length === 0) {
+    newObjTr.children = [{
+      type,
+      "attrs": {
+        "style": {},
+        "redactor-attributes": {},
+        "dir": "ltr"
+      },
+      "children": [rteMapper({ type: "paragraph", text: "" })],
+      "uid": helper?.uidGenrator()
+    }]
+  }
   return newObjTr;
 }
 
@@ -147,7 +183,11 @@ const headerCreater = ({ data }) => {
   const header = {
     "uid": helper?.uidGenrator(),
     "type": "thead",
-    "attrs": {},
+    "attrs": {
+      "style": {},
+      "redactor-attributes": {},
+      "dir": "ltr"
+    },
     "children": []
   }
   data?.forEach((item) => {
@@ -158,11 +198,16 @@ const headerCreater = ({ data }) => {
   return header;
 }
 
+
 const bodyCreater = ({ data }) => {
   const body = {
     "type": "tbody",
     "attrs": {
-      "style": {},
+      "style": {
+        "style": {},
+        "redactor-attributes": {},
+        "dir": "ltr"
+      },
       "redactor-attributes": {},
       "dir": "ltr"
     },
@@ -172,7 +217,6 @@ const bodyCreater = ({ data }) => {
     const children = pageComponentCreater({ item, type: "td" })
     body?.children?.push(children);
   })
-  // console.log(JSON.stringify(body))
   return body;
 }
 
@@ -340,18 +384,6 @@ const snippetCreate = ({ data }) => {
     }
   }
   helper.handleFile({ locale: "en-us", contentType: "sdp_snippet_component", entry, uid: entry?.uid })
-  return {
-    uid: helper?.uidGenrator(),
-    "type": "reference",
-    "attrs": {
-      "display-type": "block",
-      "type": "entry",
-      "class-name": "embedded-entry redactor-component block-entry",
-      "entry-uid": entry?.uid,
-      "locale": "en-us",
-      "content-type-uid": "sdp_snippet_component"
-    }
-  }
 }
 
 
@@ -448,7 +480,7 @@ const createPromo = ({ data }) => {
   }
 }
 
-function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {}, data }) {
+function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {}, data, entryName }) {
   const uid = helper?.uidGenrator();
   switch (type) {
     case "doc": {
@@ -475,6 +507,9 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
         "type": "p",
         "attrs": {
           "id": type,
+          "style": {},
+          "redactor-attributes": {},
+          "dir": "ltr"
         },
         uid,
         "children": [
@@ -521,7 +556,7 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
         uid,
         "children": [
           {
-            text: data?.text ?? text,
+            text: (data?.text ?? text) || "",
           }
         ]
       }
@@ -540,7 +575,7 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
           for ([key, value] of Object?.entries?.(element)) {
             if (_.isObject(value)) {
               if (value?.schemaType) {
-                obj?.push(rteMapper({ type: value?.schemaType, data: value }))
+                obj?.push(rteMapper({ type: value?.schemaType, data: value, entryName }))
               } else if (value?.text) {
                 obj?.push({ text: value?.text, ...checkTags(value?.text) });
               }
@@ -591,7 +626,7 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
         all?.push(comp);
       });
       entry.sdp_accordion_items = all;
-      entry.title = "umesh";
+      entry.title = data?.title ?? `${data?.items?.[0]?.title} ${entryName}`;
       entry.uid = data?.contentId?.replace(/-/g, '');
       helper.handleFile({ locale: "en-us", contentType: "sdp_accordion_component", entry, uid: entry?.uid })
       return {
@@ -604,7 +639,12 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
           "entry-uid": data?.contentId?.replace(/-/g, ''),
           "locale": "en-us",
           "content-type-uid": "sdp_accordion_component"
-        }
+        },
+        "children": [
+          {
+            "text": ""
+          }
+        ]
       }
     }
 
@@ -714,7 +754,24 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
     }
 
     case "SNIPPET": {
-      return snippetCreate({ data })
+      snippetCreate({ data })
+      return {
+        uid: helper?.uidGenrator(),
+        "type": "reference",
+        "attrs": {
+          "display-type": "block",
+          "type": "entry",
+          "class-name": "embedded-entry redactor-component block-entry",
+          "entry-uid": data?.contentId?.replace(/-/g, ''),
+          "locale": "en-us",
+          "content-type-uid": "sdp_snippet_component"
+        },
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      }
     }
 
     case "IMAGE_RICH_TEXT": {
@@ -770,7 +827,7 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
       return {
         "type": "a",
         "attrs": {
-          "url": `#${data?.anchor}`,
+          "url": `#${data?.anchor} `,
           "style": {},
           "redactor-attributes": {
             "href": data?.anchor,
@@ -801,7 +858,12 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
           "entry-uid": data?.contentId?.replace(/-/g, ''),
           "locale": "en-us",
           "content-type-uid": "sdp_page_promo_module"
-        }
+        },
+        "children": [
+          {
+            "text": ""
+          }
+        ]
       }
     }
 
@@ -858,7 +920,12 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
           "entry-uid": data?.contentId?.replace(/-/g, ''),
           "locale": "en-us",
           "content-type-uid": "sdp_html_embed_component"
-        }
+        },
+        "children": [
+          {
+            "text": ""
+          }
+        ]
       }
     }
 
