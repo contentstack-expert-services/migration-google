@@ -766,6 +766,10 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
           "locale": "en-us",
           "content-type-uid": "sdp_snippet_component"
         },
+        "redactor-attributes": {
+          "position": "right"
+        },
+        "dir": "ltr",
         "children": [
           {
             "text": ""
@@ -859,6 +863,10 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
           "locale": "en-us",
           "content-type-uid": "sdp_page_promo_module"
         },
+        "redactor-attributes": {
+          "position": "right"
+        },
+        "dir": "ltr",
         "children": [
           {
             "text": ""

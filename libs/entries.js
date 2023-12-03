@@ -13,7 +13,8 @@ const {
 const rteMapper = require("../utils/rteMapper");
 const helper = require("../helper");
 const path = require("path");
-const { validated } = require("../utils/aaray");
+const { validated, articleChoices } = require("../utils/aaray");
+const dateConverter = require("../utils/dateChnager");
 const globalFolder = "/Users/umesh.more/Documents/tmp 2";
 const folder = read(globalFolder);
 
@@ -83,8 +84,14 @@ const itemWrapper = (items, title) => {
         text: item?.heading ?? ""
       })
     )
+
+    const isfieldType = articleChoices?.find?.((ele) => ele?.key === item?.fieldType)
+    let fieldType = null;
+    if (isfieldType?.value) {
+      fieldType = isfieldType?.value
+    }
     obj.sdp_items_field_type = {
-      sdp_article_field_type: item?.fieldType
+      sdp_article_field_type: fieldType,
     }
     obj.sdp_items_heading = {
       sdp_heading_title: item?.heading ?? "",
@@ -141,7 +148,7 @@ function entries() {
           })
         };
         if (file?.source?.document?.validationStatusChangeDate) {
-          entry.sdp_article_validation_status.sdp_article_validation_status_change_date = file?.source?.document?.validationStatusChangeDate;
+          entry.sdp_article_validation_status.sdp_article_validation_status_change_date = dateConverter({ inputDate: file?.source?.document?.validationStatusChangeDate });
         }
         helper.handleFile({ locale: "en-us", contentType: "sdp_knowledge_article", entry, uid: entry?.uid })
       }
