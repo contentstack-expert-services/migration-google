@@ -348,24 +348,28 @@ const snippetCreate = ({ data }) => {
         newData?.push(para);
       }
       if (index > paragraphArray?.endIndex || index < paragraphArray?.startIndex) {
-        if (item?.tagName === "p") {
+        if (item?.tagName === "p" || item?.tagName === "i" || item?.tagName === null) {
           newData?.push(rteMapper({ type: "paragraph", text: item?.text }))
         } else {
           newData?.push(item);
         }
       }
     } else {
-      if (item?.tagName === "p") {
+      if (item?.tagName === "p" || item?.tagName === "i" || item?.tagName === null) {
         newData?.push(rteMapper({ type: "paragraph", text: item?.text }))
       } else {
         newData?.push(item);
       }
     }
   })
-  snippetWrapper.children = newData;
+  if (newData?.length) {
+    snippetWrapper.children = newData;
+  } else {
+    snippetWrapper.children = [rteMapper({ type: "paragraph", text: "" })];
+  }
   const entry = {
     "uid": data?.contentId?.replace?.(/-/g, ''),
-    "title": data?.snippet?.name,
+    "title": `${data?.snippet?.name} ${data?.contentId?.replace?.(/-/g, '')}`,
     "sdp_snippet_main_body": {
       "sdp_main_json_rte": snippetWrapper,
     },
@@ -466,12 +470,12 @@ const createPromo = ({ data }) => {
             }
           ]
         entry.sdp_main.sdp_promo_module__item.sdp_promo_module_external_link = {
-          "title": value?.linkText,
+          "title": value?.linkText ?? value?.href,
           "href": value?.href
         }
       } else {
         entry.sdp_main.sdp_promo_module__item.sdp_promo_module_external_link = {
-          "title": value?.linkText,
+          "title": value?.linkText ?? value?.href,
           "href": value?.href
         }
       }
@@ -606,14 +610,14 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
               newData?.push(para);
             }
             if (index > paragraphArray?.endIndex || index < paragraphArray?.startIndex) {
-              if (item?.tagName === "p") {
+              if (item?.tagName === "p" || item?.tagName === "i" || item?.tagName === null) {
                 newData?.push(rteMapper({ type: "paragraph", text: item?.text }))
               } else {
                 newData?.push(item);
               }
             }
           } else {
-            if (item?.tagName === "p") {
+            if (item?.tagName === "p" || item?.tagName === "i" || item?.tagName === null) {
               newData?.push(rteMapper({ type: "paragraph", text: item?.text }))
             } else {
               newData?.push(item);
@@ -626,8 +630,8 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
         all?.push(comp);
       });
       entry.sdp_accordion_items = all;
-      entry.title = data?.title ?? `${data?.items?.[0]?.title} ${entryName}`;
       entry.uid = data?.contentId?.replace(/-/g, '');
+      entry.title = data?.title ? `${data?.title} ${entry.uid}` : `${data?.items?.[0]?.title} ${entryName} ${entry.uid}`;
       helper.handleFile({ locale: "en-us", contentType: "sdp_accordion_component", entry, uid: entry?.uid })
       return {
         uid,
@@ -719,11 +723,16 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
     }
 
     case "UNORDERED_LIST": {
+      let ulChildren = ulCreater({ data: data?.items });
+      if (ulChildren?.length === 0) {
+        ulChildren = [rteMapper({ type: "LIST_ITEM", data: [] })];
+        ulChildren.children = [rteMapper({ type: "paragraph", text: "" })];
+      }
       return {
         uid,
         "type": "ul",
         "attrs": {},
-        "children": ulCreater({ data: data?.items })
+        "children": ulChildren
       }
     }
 
@@ -732,20 +741,29 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
       if (data?.start) {
         attrs.start = data?.start;
       }
+      let ulChildren = ulCreater({ data: data?.items });
+      if (ulChildren?.length === 0) {
+        ulChildren = [rteMapper({ type: "LIST_ITEM", data: [] })];
+        ulChildren.children = [rteMapper({ type: "paragraph", text: "" })];
+      }
       return {
         uid,
         "type": "ol",
         attrs,
-        "children": ulCreater({ data: data?.items })
+        "children": ulChildren
       }
     }
 
     case "LIST_ITEM": {
+      let liChildren = liCreate({ data: data?.items });
+      if (liChildren?.length === 0) {
+        liChildren = [rteMapper({ type: "paragraph", text: "" })];
+      }
       return {
         "type": "li",
         "attrs": {},
         uid,
-        children: liCreate({ data: data?.items }),
+        children: liChildren,
       }
     }
 
@@ -861,7 +879,7 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
           "class-name": "embedded-entry redactor-component block-entry",
           "entry-uid": data?.contentId?.replace(/-/g, ''),
           "locale": "en-us",
-          "content-type-uid": "sdp_page_promo_module"
+          "content-type-uid": "sdp_promo_component"
         },
         "redactor-attributes": {
           "position": "right"
@@ -913,7 +931,7 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
 
     case "HTML_EMBED": {
       const htmlEntry = {
-        "title": data?.ampFallbackUrl,
+        "title": data?.contentId?.replace(/-/g, ''),
         "sdp_html_embed_raw_html": data?.rawHtml,
         "uid": data?.contentId?.replace(/-/g, ''),
       }

@@ -99,6 +99,9 @@ const itemWrapper = (items, title) => {
     }
     const sdpMainRte = rteMapper({ type: "doc" })
     sdpMainRte?.children?.push(...objectNester(item?.body, title));
+    if (sdpMainRte?.children?.length === 0) {
+      sdpMainRte.children = [rteMapper({ type: "paragraph", text: "" })]
+    }
     obj.sdp_items_main_body_rte = {
       sdp_main_json_rte: sdpMainRte
     }

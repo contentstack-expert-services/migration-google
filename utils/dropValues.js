@@ -2,7 +2,7 @@ const getDropdownValuePromo = (type) => {
   const alignment = [
     {
       type: "Left",
-      value: "Left : left",
+      value: "Left  : left",
     },
     {
       type: "Right",
