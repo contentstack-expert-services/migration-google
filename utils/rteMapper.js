@@ -6,6 +6,8 @@ const paragraphWrapper = require("./paragraphWrapper")
 const extractItemsBetweenTags = require("./extractItemsBetweenTags");
 const accordionEntryConveter = require("./accordion");
 const getDropdownValuePromo = require("./dropValues");
+const replaceTags = require("./replaceTags");
+const config = require("../config");
 
 const ulCreater = ({ data }) => {
   const list = [];
@@ -36,15 +38,20 @@ const liCreate = ({ data }) => {
   paragraphArray?.result?.forEach((chd) => {
     if (chd?.tagName === "p" && chd?.hasIncomplete) {
       if (chd?.incompleteTag === "<p>") {
-        para = rteMapper({ type: "paragraph", text: chd?.text })
+        const paraData = rteMapper({ type: "paragraph", text: chd?.text });
+        para = replaceTags({ data: paraData })
       } else if (chd?.incompleteTag === "</p>") {
-        para?.children?.push({ text: chd?.text })
+        para?.children?.push({ text: helper.removeTags(chd?.text) })
       }
     } else {
       if (chd?.text && chd?.hasIncomplete === false) {
-        para?.children?.push({ text: chd?.text })
+        para?.children?.push({ text: helper.removeTags(chd?.text) })
       } else {
-        para?.children?.push(chd)
+        if (chd?.type === "a") {
+          para?.children?.push(replaceTags({ data: chd }))
+        } else {
+          para?.children?.push(chd)
+        }
       }
     }
   })
@@ -60,14 +67,16 @@ const liCreate = ({ data }) => {
           || item?.tagName === "b" ||
           item?.tagName === null
         ) {
-          newData?.push(rteMapper({ type: "paragraph", text: item?.text }))
+          const paraData = rteMapper({ type: "paragraph", text: item?.text });
+          newData?.push(replaceTags({ data: paraData }))
         } else {
           newData?.push(item);
         }
       }
     } else {
       if (item?.tagName === "p" || item?.tagName === "i" || item?.tagName === null) {
-        newData?.push(rteMapper({ type: "paragraph", text: item?.text }))
+        const paraData = rteMapper({ type: "paragraph", text: item?.text });
+        newData?.push(replaceTags({ data: paraData }))
       } else {
         newData?.push(item);
       }
@@ -133,14 +142,17 @@ const pageComponentCreater = ({ item, type }) => {
     obj?.forEach((item, index) => {
       if (typeof paragraphArray?.startIndex === "number" && typeof paragraphArray?.endIndex === "number") {
         if (paragraphArray?.startIndex === index) {
-          newData?.push(para);
+          const paraData = replaceTags({ data: para })
+          newData?.push(paraData);
         }
         if (index > paragraphArray?.endIndex || index < paragraphArray?.startIndex) {
           if (item?.tagName === "p") {
-            newData?.push(rteMapper({ type: "paragraph", text: item?.text }))
+            const paraData = rteMapper({ type: "paragraph", text: item?.text });
+            newData?.push(replaceTags({ data: paraData }))
           } else {
             if (item?.text) {
-              newData?.push(rteMapper({ type: "paragraph", text: item?.text }))
+              const paraData = rteMapper({ type: "paragraph", text: item?.text });
+              newData?.push(replaceTags({ data: paraData }))
             } else {
               newData?.push(item);
             }
@@ -148,17 +160,19 @@ const pageComponentCreater = ({ item, type }) => {
         }
       } else {
         if (item?.tagName === "p") {
-          newData?.push(rteMapper({ type: "paragraph", text: item?.text }))
+          const paraData = rteMapper({ type: "paragraph", text: item?.text });
+          newData?.push(replaceTags({ data: paraData }))
         } else {
           if (item?.text) {
-            newData?.push(rteMapper({ type: "paragraph", text: item?.text }))
+            const paraData = rteMapper({ type: "paragraph", text: item?.text });
+            newData?.push(replaceTags({ data: paraData }))
           } else {
             newData?.push(item);
           }
         }
       }
     })
-    tableHead.children = newData;
+    tableHead?.children?.push(...newData);
     if (tableHead?.children?.length === 0) {
       tableHead.children = [rteMapper({ type: "paragraph", text: "" })]
     }
@@ -301,7 +315,7 @@ const imageCreate = ({ data }) => {
 
 const snippetCreate = ({ data }) => {
   const snippetWrapper = {
-    "type": "doc",
+    "type": "div",
     attrs: {
       type: "snippet",
       id: data?.contentId,
@@ -332,11 +346,11 @@ const snippetCreate = ({ data }) => {
       if (chd?.incompleteTag === "<p>") {
         para = rteMapper({ type: "paragraph", text: chd?.text })
       } else if (chd?.incompleteTag === "</p>") {
-        para?.children?.push({ text: chd?.text })
+        para?.children?.push({ text: helper?.removeTags(chd?.text) })
       }
     } else {
       if (chd?.text && chd?.hasIncomplete === false) {
-        para?.children?.push({ text: chd?.text })
+        para?.children?.push({ text: helper?.removeTags(chd?.text) })
       } else {
         para?.children?.push(chd)
       }
@@ -345,18 +359,21 @@ const snippetCreate = ({ data }) => {
   obj?.forEach((item, index) => {
     if (typeof paragraphArray?.startIndex === "number" && typeof paragraphArray?.endIndex === "number") {
       if (paragraphArray?.startIndex === index) {
-        newData?.push(para);
+        const paraData = rteMapper({ type: "paragraph", text: item?.text })
+        newData?.push(replaceTags({ data: paraData }));
       }
       if (index > paragraphArray?.endIndex || index < paragraphArray?.startIndex) {
         if (item?.tagName === "p" || item?.tagName === "i" || item?.tagName === null) {
-          newData?.push(rteMapper({ type: "paragraph", text: item?.text }))
+          const paraData = rteMapper({ type: "paragraph", text: item?.text });
+          newData?.push(replaceTags({ data: paraData }))
         } else {
           newData?.push(item);
         }
       }
     } else {
       if (item?.tagName === "p" || item?.tagName === "i" || item?.tagName === null) {
-        newData?.push(rteMapper({ type: "paragraph", text: item?.text }))
+        const paraData = rteMapper({ type: "paragraph", text: item?.text });
+        newData?.push(replaceTags({ data: paraData }))
       } else {
         newData?.push(item);
       }
@@ -387,7 +404,8 @@ const snippetCreate = ({ data }) => {
       "sdp_article_buganizerid": ""
     }
   }
-  helper.handleFile({ locale: "en-us", contentType: "sdp_snippet_component", entry, uid: entry?.uid })
+  return snippetWrapper;
+  // helper.handleFile({ locale: config?.locale, contentType: config?.contentTypes?.snippet, entry, uid: entry?.uid })
 }
 
 
@@ -480,7 +498,7 @@ const createPromo = ({ data }) => {
         }
       }
     }
-    helper.handleFile({ locale: "en-us", contentType: "sdp_promo_component", entry, uid: entry?.uid })
+    helper.handleFile({ locale: config?.locale, contentType: config?.contentTypes?.promo, entry, uid: entry?.uid })
   }
 }
 
@@ -560,7 +578,7 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
         uid,
         "children": [
           {
-            text: (data?.text ?? text) || "",
+            text: helper.removeTags(data?.text ?? text) || "",
           }
         ]
       }
@@ -607,18 +625,21 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
         obj?.forEach((item, index) => {
           if (typeof paragraphArray?.startIndex === "number" && typeof paragraphArray?.endIndex === "number") {
             if (paragraphArray?.startIndex === index) {
-              newData?.push(para);
+              const paraData = replaceTags({ data: para })
+              newData?.push(paraData);
             }
             if (index > paragraphArray?.endIndex || index < paragraphArray?.startIndex) {
               if (item?.tagName === "p" || item?.tagName === "i" || item?.tagName === null) {
-                newData?.push(rteMapper({ type: "paragraph", text: item?.text }))
+                const paraData = rteMapper({ type: "paragraph", text: item?.text });
+                newData?.push(replaceTags({ data: paraData }))
               } else {
                 newData?.push(item);
               }
             }
           } else {
             if (item?.tagName === "p" || item?.tagName === "i" || item?.tagName === null) {
-              newData?.push(rteMapper({ type: "paragraph", text: item?.text }))
+              const paraData = rteMapper({ type: "paragraph", text: item?.text });
+              newData?.push(replaceTags({ data: paraData }))
             } else {
               newData?.push(item);
             }
@@ -632,7 +653,7 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
       entry.sdp_accordion_items = all;
       entry.uid = data?.contentId?.replace(/-/g, '');
       entry.title = data?.title ? `${data?.title} ${entry.uid}` : `${data?.items?.[0]?.title} ${entryName} ${entry.uid}`;
-      helper.handleFile({ locale: "en-us", contentType: "sdp_accordion_component", entry, uid: entry?.uid })
+      helper.handleFile({ locale: config?.locale, contentType: config?.contentTypes?.accordion, entry, uid: entry?.uid })
       return {
         uid,
         "type": "reference",
@@ -641,8 +662,8 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
           "type": "entry",
           "class-name": "embedded-entry redactor-component block-entry",
           "entry-uid": data?.contentId?.replace(/-/g, ''),
-          "locale": "en-us",
-          "content-type-uid": "sdp_accordion_component"
+          "locale": config?.locale,
+          "content-type-uid": config?.contentTypes?.accordion
         },
         "children": [
           {
@@ -708,7 +729,9 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
         uid,
         "children": data?.body?.map((item) => {
           if (item?.text) {
-            return item?.text;
+            return {
+              text: helper.removeTags(item?.text?.text)
+            }
           } else {
             for (const [key, value] of Object?.entries?.(item)) {
               if (_.isObject(value)) {
@@ -772,28 +795,28 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
     }
 
     case "SNIPPET": {
-      snippetCreate({ data })
-      return {
-        uid: helper?.uidGenrator(),
-        "type": "reference",
-        "attrs": {
-          "display-type": "block",
-          "type": "entry",
-          "class-name": "embedded-entry redactor-component block-entry",
-          "entry-uid": data?.contentId?.replace(/-/g, ''),
-          "locale": "en-us",
-          "content-type-uid": "sdp_snippet_component"
-        },
-        "redactor-attributes": {
-          "position": "right"
-        },
-        "dir": "ltr",
-        "children": [
-          {
-            "text": ""
-          }
-        ]
-      }
+      return snippetCreate({ data })
+      // return {
+      //   uid: helper?.uidGenrator(),
+      //   "type": "reference",
+      //   "attrs": {
+      //     "display-type": "block",
+      //     "type": "entry",
+      //     "class-name": "embedded-entry redactor-component block-entry",
+      //     "entry-uid": data?.contentId?.replace(/-/g, ''),
+      //     "locale": config?.locale,
+      //     "content-type-uid": config?.contentTypes?.snippet
+      //   },
+      //   "redactor-attributes": {
+      //     "position": "right"
+      //   },
+      //   "dir": "ltr",
+      //   "children": [
+      //     {
+      //       "text": ""
+      //     }
+      //   ]
+      // }
     }
 
     case "IMAGE_RICH_TEXT": {
@@ -827,7 +850,7 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
         uid,
         "children": data?.quote?.map((item) => {
           if (item?.text) {
-            return item?.text;
+            return { text: helper.removeTags(item?.text?.text) }
           } else {
             for (const [key, value] of Object?.entries?.(item)) {
               if (_.isObject(value)) {
@@ -878,8 +901,8 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
           "type": "entry",
           "class-name": "embedded-entry redactor-component block-entry",
           "entry-uid": data?.contentId?.replace(/-/g, ''),
-          "locale": "en-us",
-          "content-type-uid": "sdp_promo_component"
+          "locale": config?.locale,
+          "content-type-uid": config?.contentTypes?.promo
         },
         "redactor-attributes": {
           "position": "right"
@@ -935,7 +958,7 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
         "sdp_html_embed_raw_html": data?.rawHtml,
         "uid": data?.contentId?.replace(/-/g, ''),
       }
-      helper.handleFile({ locale: "en-us", contentType: "sdp_html_embed_component", entry: htmlEntry, uid: htmlEntry?.uid })
+      helper.handleFile({ locale: config?.locale, contentType: config?.contentTypes?.htmlEmbed, entry: htmlEntry, uid: htmlEntry?.uid })
       return {
         uid,
         "type": "reference",
@@ -944,8 +967,8 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
           "type": "entry",
           "class-name": "embedded-entry redactor-component block-entry",
           "entry-uid": data?.contentId?.replace(/-/g, ''),
-          "locale": "en-us",
-          "content-type-uid": "sdp_html_embed_component"
+          "locale": config?.locale,
+          "content-type-uid": config?.contentTypes?.htmlEmbed
         },
         "children": [
           {
@@ -965,7 +988,7 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
             "src": data?.url,
           }
         },
-        "uid": "df8c9bd80d554a5983970dbe9bbccb7c",
+        uid,
         "children": [
           {
             "text": ""

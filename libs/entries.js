@@ -15,7 +15,8 @@ const helper = require("../helper");
 const path = require("path");
 const { validated, articleChoices } = require("../utils/aaray");
 const dateConverter = require("../utils/dateChnager");
-const globalFolder = "/Users/umesh.more/Documents/tmp 2";
+const config = require("../config");
+const globalFolder = config?.paths?.import?.filePath;
 const folder = read(globalFolder);
 
 
@@ -113,7 +114,7 @@ const itemWrapper = (items, title) => {
 function entries() {
   try {
     folder?.forEach?.((item, index) => {
-      if (item?.includes?.(".json") && item?.includes?.("bsparticles")) {
+      if (item?.includes?.(".json") && item?.includes?.(config?.paths?.import?.articleFolderName)) {
         const entry = {};
         const file = helper?.readFile({ path: `${globalFolder}/${item}` })
         entry.uid = file?.documentId?.replace(/-/g, '');
@@ -153,7 +154,7 @@ function entries() {
         if (file?.source?.document?.validationStatusChangeDate) {
           entry.sdp_article_validation_status.sdp_article_validation_status_change_date = dateConverter({ inputDate: file?.source?.document?.validationStatusChangeDate });
         }
-        helper.handleFile({ locale: "en-us", contentType: "sdp_knowledge_article", entry, uid: entry?.uid })
+        helper.handleFile({ locale: config?.locale, contentType: config?.contentTypes?.knowledgeArticle, entry, uid: entry?.uid })
       }
     })
   } catch (err) {

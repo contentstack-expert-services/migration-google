@@ -2,6 +2,7 @@ const fs = require("fs");
 const _ = require("lodash");
 const path = require("path");
 const { v4 } = require('uuid');
+const config = require("../config");
 
 const readFile = ({ path }) => {
   try {
@@ -46,7 +47,7 @@ const writeEntry = ({ data, contentType, locale }) => {
   fs.writeFileSync(
     path.join(
       __dirname,
-      `../google/entries/${contentType}`,
+      `${config?.paths?.export?.dir}/entries/${contentType}`,
       `${locale}.json`
     ),
     JSON.stringify(data, null, 4),
@@ -62,7 +63,7 @@ const handleFile = ({ locale, contentType, entry, uid }) => {
     fs.existsSync(
       path.join(
         __dirname,
-        `../google/entries/${contentType}`
+        `${config?.paths?.export?.dir}/entries/${contentType}`
       )
     )
   ) {
@@ -70,7 +71,7 @@ const handleFile = ({ locale, contentType, entry, uid }) => {
       path:
         path.join(
           __dirname,
-          `../google/entries/${contentType}`,
+          `${config?.paths?.export?.dir}/entries/${contentType}`,
           `${locale}.json`
         )
     })
@@ -83,13 +84,25 @@ const handleFile = ({ locale, contentType, entry, uid }) => {
     fs.mkdirSync(
       path.join(
         __dirname,
-        `../google/entries/${contentType}`
+        `${config?.paths?.export?.dir}/entries/${contentType}`
       ),
       { recursive: true }
     );
     data[uid] = entry;
     writeEntry({ data, contentType, locale })
   }
+}
+function isURL(url) {
+  const urlRegex = /^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/i;
+  return urlRegex?.test?.(url);
+}
+
+function removeTags(inputString) {
+  if (inputString?.includes("<g-snippet") || isURL(inputString)) {
+    return inputString;
+  }
+  const htmlTagsRegex = /<[^>]*>/g;
+  return `${_.replace(inputString, htmlTagsRegex, '')}`;
 }
 
 module.exports = {
@@ -98,5 +111,6 @@ module.exports = {
   getValue,
   uidGenrator,
   getHeadingType,
-  handleFile
+  handleFile,
+  removeTags
 }

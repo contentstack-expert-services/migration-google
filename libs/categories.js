@@ -13,12 +13,13 @@ const {
 const rteMapper = require("../utils/rteMapper");
 const helper = require("../helper");
 const path = require("path");
-const globalFolder = "/Users/umesh.more/Documents/tmp 2";
+const config = require("../config");
+const globalFolder = config?.paths?.import?.filePath;
 const folder = read(globalFolder);
 
 function categories() {
   folder?.forEach?.((item, index) => {
-    if (item?.includes?.(".json") && item?.includes?.("bspcategories")) {
+    if (item?.includes?.(".json") && item?.includes?.(config?.paths?.import?.categoryFolderName)) {
       const entry = {};
       const file = helper?.readFile({ path: `${globalFolder}/${item}` })
       entry.uid = file?.categoryId?.replace?.(/-/g, '');
@@ -39,7 +40,7 @@ function categories() {
         sdp_main_json_rte.children = objectNester(file?.source?.category?.description);
         entry.sdp_category_description = { sdp_main_json_rte }
       };
-      helper.handleFile({ locale: "en-us", contentType: "sdp_categories", entry, uid: entry?.uid })
+      helper.handleFile({ locale: config?.locale, contentType: config?.contentTypes?.categories, entry, uid: entry?.uid })
     }
   })
 }

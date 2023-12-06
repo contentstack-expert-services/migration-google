@@ -2,6 +2,7 @@ const stringSimilarity = require('string-similarity');
 const _ = require("lodash");
 const rteMapper = require('./rteMapper');
 const helper = require('../helper');
+const replaceTags = require('./replaceTags');
 
 function formatName(input) {
   return input
@@ -97,132 +98,23 @@ const paragraphWrapper = (data) => {
   let obj = {};
   const newData = [];
   const paragraphArray = extractItemsBetweenTags(data, "<p>", "</p>");
-  // console.log("🚀 ~ file: index.js:101 ~ paragraphWrapper ~ paragraphArray:", paragraphArray?.result)
-  // const indexing = [];
-  // paragraphArray?.indexs?.forEach((ind) => {
-  //   const comp = [];
-  //   data?.forEach((item, index) => {
-  //     if (ind?.startIndex !== null && ind?.startIndex <= index && index <= ind?.endIndex) {
-  //       comp?.push(item);
-  //     }
-  //   })
-  //   let obj = {};
-  //   comp?.forEach((chd) => {
-  //     if (chd?.tagName === "p" && chd?.hasIncomplete) {
-  //       if (chd?.incompleteTag === "<p>") {
-  //         obj = rteMapper({ type: "paragraph", text: chd?.text })
-  //         obj.attrs = { contentId: chd?.contentId }
-  //       } else if (chd?.incompleteTag === "</p>") {
-  //         obj?.children?.push({ text: chd?.text })
-  //       }
-  //     } else {
-  //       if (chd?.text && chd?.hasIncomplete === false) {
-  //         obj?.children?.push({ text: chd?.text })
-  //       } else {
-  //         obj?.children?.push(chd)
-  //       }
-  //     }
-  //   })
-  //   indexing?.push({ ...ind, result: obj })
-  // })
-  // const newTry = [];
-  // data?.forEach((ele) => {
-  //   const dat = indexing?.find((item) => {
-  //     if (item?.result?.attrs?.contentId === ele?.contentId) {
-  //       return item?.result
-  //     }
-  //   })
-  //   if (dat?.result) {
-  //     newTry?.push(dat?.result)
-  //   } else {
-  //     newTry?.push(ele)
-  //   }
-  // })
-  console.log(" ============>>>>>>>>>>>>>>>>>>> ");
-  // console.log(JSON.stringify(newTry))
-  // const newFinalDAta = [];
-  // newTry?.forEach((item, index) => {
-  //   if (item?.attrs?.["display-type"]) {
-  //     newFinalDAta?.push(item);
-  //   } else if (item?.type === "p") {
-  //     newFinalDAta?.push(item);
-  //   } else {
-  //     let notAdd = true;
-  //     paragraphArray?.result?.forEach((ele) => {
-  //       if (item?.contentId !== undefined) {
-  //         if (item?.contentId !== ele?.contentId) {
-  //           notAdd = false;
-  //         }
-  //       } else if (item?.uid !== undefined) {
-  //         if (item?.uid !== ele?.uid) {
-  //           notAdd = false;
-  //         }
-  //       } else {
-  //         console.log("bach gaya", item)
-  //       }
-  //     })
-  //     if (notAdd !== true) {
-  //       newFinalDAta?.push(item);
-  //     }
-  //   }
-  // })
-
   paragraphArray?.result?.forEach((chd) => {
-    if (chd?.tagName === "i" || chd?.tagName === "br" || chd?.tagName === "b") {
-      newData?.push(rteMapper({ type: "paragraph", text: chd?.text }))
+    if (chd?.tagName === "i" ||
+      chd?.tagName === "br" ||
+      chd?.tagName === "b" ||
+      chd?.tagName === "article" ||
+      chd?.tagName === "section") {
+      const paraData = rteMapper({ type: "paragraph", text: chd?.text });
+      newData?.push(replaceTags({ data: paraData }))
     } else {
       if (chd?.tagName === "p" || chd?.tagName === null) {
-        newData?.push(rteMapper({ type: "paragraph", text: chd?.text }))
+        const paraData = rteMapper({ type: "paragraph", text: chd?.text });
+        newData?.push(replaceTags({ data: paraData }))
       } else {
         newData?.push(chd)
       }
     }
   })
-  // paragraphArray?.result?.forEach((chd) => {
-  //   if (chd?.tagName === "p" && chd?.hasIncomplete) {
-  //     if (chd?.incompleteTag === "<p>") {
-  //       obj = rteMapper({ type: "paragraph", text: chd?.text })
-  //     } else if (chd?.incompleteTag === "</p>") {
-  //       obj?.children?.push({ text: chd?.text })
-  //     }
-  //   } else {
-  //     if (chd?.text && chd?.hasIncomplete === false) {
-  //       obj?.children?.push({ text: chd?.text })
-  //     } else {
-  //       obj?.children?.push(chd)
-  //     }
-  //   }
-  // })
-
-  // data?.forEach((item, index) => {
-  //   if (typeof paragraphArray?.startIndex === "number" && typeof paragraphArray?.endIndex === "number") {
-  //     if (paragraphArray?.startIndex === index) {
-  //       newData?.push(obj);
-  //     } else {
-  //       if (index > paragraphArray?.endIndex || index < paragraphArray?.startIndex) {
-  //         if (item?.tagName === "p") {
-  //           newData?.push(rteMapper({ type: "paragraph", text: item?.text }))
-  //         } else {
-  //           if (item?.tagName === null) {
-  //             newData?.push({ text: item?.text, myra: "myra" });
-  //           } else {
-  //             newData?.push(item);
-  //           }
-  //         }
-  //       }
-  //     }
-  //   } else {
-  //     if (item?.tagName === "p") {
-  //       newData?.push(rteMapper({ type: "paragraph", text: item?.text }))
-  //     } else {
-  //       if (item?.tagName === null) {
-  //         newData?.push({ text: item?.text, nutan: "nutan" });
-  //       } else {
-  //         newData?.push(item);
-  //       }
-  //     }
-  //   }
-  // })
   return newData;
 }
 
@@ -234,7 +126,8 @@ const objectNester = (body, title) => {
     for ([key, value] of Object?.entries?.(item)) {
       if (_.isObject(value)) {
         if (value?.schemaType) {
-          children?.push(rteMapper({ type: value?.schemaType, data: value, entryName: title }))
+          const data = rteMapper({ type: value?.schemaType, data: value, entryName: title });
+          children?.push(data)
         } else if (value?.text) {
           children?.push({ text: value?.text, contentId: helper?.uidGenrator(), ...checkTags(value?.text) });
         }
@@ -243,6 +136,7 @@ const objectNester = (body, title) => {
       }
     }
   })
+  // console.log("=>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> outer", JSON.stringify(children))
   return paragraphWrapper(children)
 }
 
@@ -261,7 +155,7 @@ const extractItemsBetweenTags = (data, startTag, endTag) => {
       newStartIndex = index;
       startIndex = index;
       isInBetween = true;
-      obj = rteMapper({ type: "paragraph", text: item?.text })
+      obj = rteMapper({ type: "paragraph", text: helper.removeTags(item?.text) })
       result.push({ index, ...obj });
     } else if (isInBetween) {
       if (item?.incompleteTag === endTag) {
@@ -270,7 +164,7 @@ const extractItemsBetweenTags = (data, startTag, endTag) => {
         isInBetween = false;
         if (result?.[prevStartIndex]?.children?.length) {
           if (item?.text) {
-            result[prevStartIndex].children?.push({ text: item?.text })
+            result[prevStartIndex].children?.push({ text: helper.removeTags(item?.text) })
           } else {
             result[prevStartIndex].children?.push(item)
           }
@@ -280,12 +174,16 @@ const extractItemsBetweenTags = (data, startTag, endTag) => {
       } else {
         if (result?.[prevStartIndex]?.children?.length) {
           if (item?.text && (item?.hasIncomplete === false || item?.hasIncomplete)) {
-            result[prevStartIndex].children?.push({ text: item?.text })
+            result[prevStartIndex].children?.push({ text: helper.removeTags(item?.text) })
           } else {
             result[prevStartIndex].children?.push(item)
           }
         } else {
-          result.push(item);
+          if (item?.type === "a") {
+            result.push(replaceTags({ data: item }))
+          } else {
+            result.push(item);
+          }
         }
       }
     } else {
