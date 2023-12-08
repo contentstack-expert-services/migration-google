@@ -315,7 +315,7 @@ const imageCreate = ({ data }) => {
 
 const snippetCreate = ({ data }) => {
   const snippetWrapper = {
-    "type": "div",
+    "type": "doc",
     attrs: {
       type: "snippet",
       id: data?.contentId,
@@ -404,8 +404,8 @@ const snippetCreate = ({ data }) => {
       "sdp_article_buganizerid": ""
     }
   }
-  return snippetWrapper;
-  // helper.handleFile({ locale: config?.locale, contentType: config?.contentTypes?.snippet, entry, uid: entry?.uid })
+  // return snippetWrapper;
+  helper.handleFile({ locale: config?.locale, contentType: config?.contentTypes?.snippet, entry, uid: entry?.uid })
 }
 
 
@@ -795,28 +795,28 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
     }
 
     case "SNIPPET": {
-      return snippetCreate({ data })
-      // return {
-      //   uid: helper?.uidGenrator(),
-      //   "type": "reference",
-      //   "attrs": {
-      //     "display-type": "block",
-      //     "type": "entry",
-      //     "class-name": "embedded-entry redactor-component block-entry",
-      //     "entry-uid": data?.contentId?.replace(/-/g, ''),
-      //     "locale": config?.locale,
-      //     "content-type-uid": config?.contentTypes?.snippet
-      //   },
-      //   "redactor-attributes": {
-      //     "position": "right"
-      //   },
-      //   "dir": "ltr",
-      //   "children": [
-      //     {
-      //       "text": ""
-      //     }
-      //   ]
-      // }
+      snippetCreate({ data })
+      return {
+        uid: helper?.uidGenrator(),
+        "type": "reference",
+        "attrs": {
+          "display-type": "block",
+          "type": "entry",
+          "class-name": "embedded-entry redactor-component block-entry",
+          "entry-uid": data?.contentId?.replace(/-/g, ''),
+          "locale": config?.locale,
+          "content-type-uid": config?.contentTypes?.snippet
+        },
+        "redactor-attributes": {
+          "position": "right"
+        },
+        "dir": "ltr",
+        "children": [
+          {
+            "text": ""
+          }
+        ]
+      }
     }
 
     case "IMAGE_RICH_TEXT": {
@@ -832,7 +832,7 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
         uid,
         "children": [
           {
-            text: data?.code?.code,
+            text: data?.code?.code ?? "",
             "inlineCode": true
           }
         ]

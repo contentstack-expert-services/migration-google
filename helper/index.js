@@ -12,7 +12,8 @@ const readFile = ({ path }) => {
     }
     return data;
   } catch (err) {
-    throw err;
+    console.info("🚀 ~ file: index.js:16 ~ readFile ~ err:", err, path)
+    // throw err;
   }
 }
 

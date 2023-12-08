@@ -16,6 +16,9 @@ module.exports = {
     htmlEmbed: "sdp_html_embed_component",
     snippet: "sdp_snippet_component",
     promo: "sdp_promo_component",
+    audiance: "sdp_audiences",
+    devices: "sdp_device_auth_statuses",
+    taxonomy: "sdp_taxonomies",
   },
   locale: "en-us"
 }

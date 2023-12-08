@@ -73,7 +73,7 @@ const sectionWrapper = (section, newData) => {
 
 
 
-const itemWrapper = (items, title) => {
+const itemWrapper = (items, title, audiencesData, deviceData) => {
   const result = [];
   items?.forEach((item, i) => {
     const obj = {};
@@ -85,7 +85,6 @@ const itemWrapper = (items, title) => {
         text: item?.heading ?? ""
       })
     )
-
     const isfieldType = articleChoices?.find?.((ele) => ele?.key === item?.fieldType)
     let fieldType = null;
     if (isfieldType?.value) {
@@ -106,6 +105,34 @@ const itemWrapper = (items, title) => {
     obj.sdp_items_main_body_rte = {
       sdp_main_json_rte: sdpMainRte
     }
+    if (item?.audiences?.length) {
+      const audiences = [];
+      item?.audiences?.forEach((ele) => {
+        for (const [key, value] of Object?.entries(audiencesData)) {
+          if (value?.sdp_migration_data_reference?.bsp_entry_id === ele?.contentId) {
+            audiences?.push({
+              "uid": value?.uid ?? key,
+              "_content_type_uid": config?.contentTypes?.audiance
+            })
+          }
+        }
+      })
+      console.log("🚀 ~ file: entries.js:109 ~ items?.forEach ~ item?.audiences:", audiences)
+    }
+    if (item?.devices?.length) {
+      const devices = [];
+      item?.devices?.forEach((ele) => {
+        for (const [key, value] of Object?.entries(deviceData)) {
+          if (value?.sdp_migration_data_reference?.bsp_entry_id === ele?.contentId) {
+            devices?.push({
+              "uid": value?.uid ?? key,
+              "_content_type_uid": config?.contentTypes?.devices
+            })
+          }
+        }
+      })
+      console.log("🚀 ~ file: entries.js:112 ~ items?.forEach ~ item?.devices:", devices)
+    }
     result?.push(obj);
   })
   return result;
@@ -113,10 +140,14 @@ const itemWrapper = (items, title) => {
 
 function entries() {
   try {
+    const audiencesData = helper?.readFile({ path: path.join(__dirname, `../google/entries/${config?.contentTypes?.audiance}/en-us.json`) });
+    const deviceData = helper?.readFile({ path: path.join(__dirname, `../google/entries/${config?.contentTypes?.devices}/en-us.json`) });
+    const taxonomyData = helper?.readFile({ path: path.join(__dirname, `../google/entries/${config?.contentTypes?.taxonomy}/en-us.json`) });
     folder?.forEach?.((item, index) => {
       if (item?.includes?.(".json") && item?.includes?.(config?.paths?.import?.articleFolderName)) {
         const entry = {};
         const file = helper?.readFile({ path: `${globalFolder}/${item}` })
+        console.log("=====>>>>>>>", file?.documentId)
         entry.uid = file?.documentId?.replace(/-/g, '');
         entry.title = file?.title;
         entry.documentId = file?.documentId;
@@ -124,7 +155,7 @@ function entries() {
         entry.documentType = file?.documentType;
         entry.sdp_article_subtext = file?.source?.document?.subtext;
         entry.sdp_article_keywords = file?.source?.document?.keywords?.map((item) => item)?.join(",");
-        entry.sdp_items_global_insert_items = [{ sdp_items_main: itemWrapper(file?.source?.document?.items, file?.title) }]
+        entry.sdp_items_global_insert_items = [{ sdp_items_main: itemWrapper(file?.source?.document?.items, file?.title, audiencesData, deviceData) }]
         entry.migration = {
           "bsp_entry_id": file?.documentId?.replace(/-/g, ''),
           "bsp_entry_type": file?.documentType,
@@ -151,6 +182,63 @@ function entries() {
             }
           })
         };
+        entry.sdp_user_dimension = {
+          "sdp_article_audience": {
+            "sdp_audience": []
+          },
+          "sdp_article_device_auth_statuses": {
+            "sdp_device_auth_status": []
+          }
+        };
+        if (file?.source?.document?.audiences?.length) {
+          const audiences = [];
+          file?.source?.document?.audiences?.forEach((item) => {
+            for (const [key, value] of Object?.entries(audiencesData)) {
+              if (value?.sdp_migration_data_reference?.bsp_entry_id === item?.contentId) {
+                audiences?.push({
+                  "uid": value?.uid ?? key,
+                  "_content_type_uid": config?.contentTypes?.audiance
+                })
+              }
+            }
+          })
+          entry.sdp_user_dimension.sdp_article_audience = {
+            "sdp_audience": audiences,
+          }
+        }
+        if (file?.source?.document?.devices?.length) {
+          const devices = [];
+          file?.source?.document?.devices?.forEach((item) => {
+            for (const [key, value] of Object?.entries(deviceData)) {
+              if (value?.sdp_migration_data_reference?.bsp_entry_id === item?.contentId) {
+                devices?.push({
+                  "uid": value?.uid ?? key,
+                  "_content_type_uid": config?.contentTypes?.devices
+                })
+              }
+            }
+          })
+          entry.sdp_user_dimension.sdp_article_device_auth_statuses = {
+            "sdp_device_auth_status": devices,
+          }
+        }
+        entry.sdp_article_taxonomy = {
+          "sdp_article_taxonomy": []
+        };
+        if (file?.source?.document?.taxonomy) {
+          const taxonomy = [];
+          for (const [key, value] of Object?.entries(taxonomyData)) {
+            if (value?.sdp_migration_data?.bsp_entry_id === file?.source?.document?.taxonomy?.contentId) {
+              taxonomy?.push({
+                "uid": value?.uid ?? key,
+                "_content_type_uid": config?.contentTypes?.taxonomy
+              })
+            }
+          }
+          entry.sdp_article_taxonomy = {
+            "sdp_article_taxonomy": taxonomy,
+          };
+        }
         if (file?.source?.document?.validationStatusChangeDate) {
           entry.sdp_article_validation_status.sdp_article_validation_status_change_date = dateConverter({ inputDate: file?.source?.document?.validationStatusChangeDate });
         }
