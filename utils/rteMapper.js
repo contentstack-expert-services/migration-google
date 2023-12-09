@@ -482,10 +482,10 @@ const createPromo = ({ data }) => {
       if (value?.schemaType === "INTERNAL") {
         entry.sdp_main.sdp_promo_module__item.sdp_promo_module_internal_link =
           [
-            {
-              "uid": extractUidFromUrl(value?.path, "uid"),
-              "_content_type_uid": extractUidFromUrl(value?.path) === "article" ? "sdp_knowledge_article" : ""
-            }
+            // {
+            //   "uid": extractUidFromUrl(value?.path, "uid"),
+            //   "_content_type_uid": extractUidFromUrl(value?.path) === "article" ? "sdp_knowledge_article" : ""
+            // }
           ]
         entry.sdp_main.sdp_promo_module__item.sdp_promo_module_external_link = {
           "title": value?.linkText ?? value?.href,

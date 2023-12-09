@@ -4,13 +4,30 @@ const path = require("path");
 const { v4 } = require('uuid');
 const config = require("../config");
 
-const readFile = ({ path }) => {
+const readFile = ({ path, readFileV2 = false }) => {
   try {
-    const data = fs.readFileSync(path, "utf-8")
-    if (typeof data === "string") {
-      return JSON?.parse(data);
+    if (readFileV2) {
+      let allObjData = {};
+      let data = fs.readFileSync(`${path}/index.json`, "utf-8")
+      if (typeof data === "string") {
+        data = JSON?.parse(data);
+      }
+      for (const [key, value] of Object?.entries(data)) {
+        const sepratedData = readFile({ path: `${path}/${value}` })
+        if (Object?.keys(allObjData)?.length) {
+          allObjData = { ...sepratedData, ...allObjData }
+        } else {
+          allObjData = sepratedData;
+        }
+        return sepratedData;
+      }
+    } else {
+      const data = fs.readFileSync(path, "utf-8")
+      if (typeof data === "string") {
+        return JSON?.parse(data);
+      }
+      return data;
     }
-    return data;
   } catch (err) {
     console.info("🚀 ~ file: index.js:16 ~ readFile ~ err:", err, path)
     // throw err;
@@ -48,10 +65,22 @@ const writeEntry = ({ data, contentType, locale }) => {
   fs.writeFileSync(
     path.join(
       __dirname,
-      `${config?.paths?.export?.dir}/entries/${contentType}`,
+      `${config?.paths?.export?.dir}/entries/${contentType}/${locale}`,
       `${locale}.json`
     ),
     JSON.stringify(data, null, 4),
+    (err) => {
+      if (err) throw err;
+    }
+  );
+  const indexObj = { "1": `${locale}.json` }
+  fs.writeFileSync(
+    path.join(
+      __dirname,
+      `${config?.paths?.export?.dir}/entries/${contentType}/${locale}`,
+      "index.json"
+    ),
+    JSON.stringify(indexObj, null, 4),
     (err) => {
       if (err) throw err;
     }
@@ -64,7 +93,7 @@ const handleFile = ({ locale, contentType, entry, uid }) => {
     fs.existsSync(
       path.join(
         __dirname,
-        `${config?.paths?.export?.dir}/entries/${contentType}`
+        `${config?.paths?.export?.dir}/entries/${contentType}/${locale}`
       )
     )
   ) {
@@ -72,7 +101,7 @@ const handleFile = ({ locale, contentType, entry, uid }) => {
       path:
         path.join(
           __dirname,
-          `${config?.paths?.export?.dir}/entries/${contentType}`,
+          `${config?.paths?.export?.dir}/entries/${contentType}/${locale}`,
           `${locale}.json`
         )
     })
@@ -85,7 +114,7 @@ const handleFile = ({ locale, contentType, entry, uid }) => {
     fs.mkdirSync(
       path.join(
         __dirname,
-        `${config?.paths?.export?.dir}/entries/${contentType}`
+        `${config?.paths?.export?.dir}/entries/${contentType}/${locale}`
       ),
       { recursive: true }
     );

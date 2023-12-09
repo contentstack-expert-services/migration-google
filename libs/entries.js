@@ -76,6 +76,7 @@ const sectionWrapper = (section, newData) => {
 const itemWrapper = (items, title, audiencesData, deviceData) => {
   const result = [];
   items?.forEach((item, i) => {
+    const newObj = {};
     const obj = {};
     const sdpHeadingRte = rteMapper({ type: "doc" })
     sdpHeadingRte?.children?.push(
@@ -105,6 +106,14 @@ const itemWrapper = (items, title, audiencesData, deviceData) => {
     obj.sdp_items_main_body_rte = {
       sdp_main_json_rte: sdpMainRte
     }
+    newObj.sdp_articles_user_dimensions = {
+      "sdp_article_audience": {
+        "sdp_audience": []
+      },
+      "sdp_article_device_auth_statuses": {
+        "sdp_device_auth_status": []
+      }
+    }
     if (item?.audiences?.length) {
       const audiences = [];
       item?.audiences?.forEach((ele) => {
@@ -117,7 +126,11 @@ const itemWrapper = (items, title, audiencesData, deviceData) => {
           }
         }
       })
-      console.log("🚀 ~ file: entries.js:109 ~ items?.forEach ~ item?.audiences:", audiences)
+      newObj.sdp_articles_user_dimensions = {
+        "sdp_article_audience": {
+          "sdp_audience": audiences ?? []
+        },
+      }
     }
     if (item?.devices?.length) {
       const devices = [];
@@ -131,18 +144,24 @@ const itemWrapper = (items, title, audiencesData, deviceData) => {
           }
         }
       })
-      console.log("🚀 ~ file: entries.js:112 ~ items?.forEach ~ item?.devices:", devices)
+      newObj.sdp_articles_user_dimensions = {
+        ...newObj.sdp_articles_user_dimensions,
+        "sdp_article_device_auth_statuses": {
+          "sdp_device_auth_status": devices ?? []
+        }
+      }
     }
-    result?.push(obj);
+    newObj.sdp_items_main = [obj];
+    result?.push(newObj);
   })
   return result;
 }
 
 function entries() {
   try {
-    const audiencesData = helper?.readFile({ path: path.join(__dirname, `../google/entries/${config?.contentTypes?.audiance}/en-us.json`) });
-    const deviceData = helper?.readFile({ path: path.join(__dirname, `../google/entries/${config?.contentTypes?.devices}/en-us.json`) });
-    const taxonomyData = helper?.readFile({ path: path.join(__dirname, `../google/entries/${config?.contentTypes?.taxonomy}/en-us.json`) });
+    const audiencesData = helper?.readFile({ path: path.join(__dirname, `../google/entries/${config?.contentTypes?.audiance}/${config?.locale}`), readFileV2: true }) ?? {};
+    const deviceData = helper?.readFile({ path: path.join(__dirname, `../google/entries/${config?.contentTypes?.devices}/${config?.locale}`), readFileV2: true }) ?? {};
+    const taxonomyData = helper?.readFile({ path: path.join(__dirname, `../google/entries/${config?.contentTypes?.taxonomy}/${config?.locale}`), readFileV2: true }) ?? {};
     folder?.forEach?.((item, index) => {
       if (item?.includes?.(".json") && item?.includes?.(config?.paths?.import?.articleFolderName)) {
         const entry = {};
@@ -155,7 +174,7 @@ function entries() {
         entry.documentType = file?.documentType;
         entry.sdp_article_subtext = file?.source?.document?.subtext;
         entry.sdp_article_keywords = file?.source?.document?.keywords?.map((item) => item)?.join(",");
-        entry.sdp_items_global_insert_items = [{ sdp_items_main: itemWrapper(file?.source?.document?.items, file?.title, audiencesData, deviceData) }]
+        entry.sdp_items_global_insert_items = itemWrapper(file?.source?.document?.items, file?.title, audiencesData, deviceData)
         entry.migration = {
           "bsp_entry_id": file?.documentId?.replace(/-/g, ''),
           "bsp_entry_type": file?.documentType,
@@ -174,13 +193,302 @@ function entries() {
           "sdp_keywords": "",
           "sdp_enable_search_indexing": true
         };
-        entry.sdp_articlemeta_data = {
-          sdp_article_categories: file?.categoryIds?.map((item) => {
-            return {
+        const missingRefs = [
+          {
+            uid: '000001887db6d690a1cbffb77dcb0000',
+            _content_type_uid: 'sdp_knowledge_article'
+          },
+          {
+            uid: '000001887d87d528affafdaf196c0000',
+            _content_type_uid: 'sdp_knowledge_article'
+          },
+          {
+            uid: '000001887d87d690a1cbff9720c10000',
+            _content_type_uid: 'sdp_knowledge_article'
+          },
+          {
+            uid: '000001887d87d528affafdaf26800000',
+            _content_type_uid: 'sdp_knowledge_article'
+          },
+          {
+            uid: '000001887d87dc7ca1fe7fef49160000',
+            _content_type_uid: 'sdp_knowledge_article'
+          },
+          {
+            uid: '000001887d87d690a1cbff973a320000',
+            _content_type_uid: 'sdp_knowledge_article'
+          },
+          {
+            uid: '000001887d87dc7ca1fe7fef42600000',
+            _content_type_uid: 'sdp_knowledge_article'
+          },
+          {
+            uid: '000001857930d5bda3c5fff768d20006',
+            _content_type_uid: 'sdp_knowledge_article'
+          },
+          {
+            uid: '000001885200d3f3a78fd3d111a50000',
+            _content_type_uid: 'sdp_knowledge_article'
+          },
+          {
+            uid: '0000018851b5db35afe8d7ff609b0000',
+            _content_type_uid: 'sdp_knowledge_article'
+          },
+          {
+            uid: '0000018872c1dfe0abad76e7503b0000',
+            _content_type_uid: 'sdp_knowledge_article'
+          },
+          {
+            uid: '0000018872c6dfe0abad76e7519d0000',
+            _content_type_uid: 'sdp_knowledge_article'
+          },
+          {
+            uid: '0000018872cddfe0abad76ef790f0000',
+            _content_type_uid: 'sdp_knowledge_article'
+          },
+          {
+            uid: '0000018872cddfe0abad76ef816a0000',
+            _content_type_uid: 'sdp_knowledge_article'
+          },
+          {
+            uid: '0000018872cddfe0abad76ef87a70000',
+            _content_type_uid: 'sdp_knowledge_article'
+          },
+          {
+            uid: '000001857935d5bda3c5fff74fe80000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857935d5bda3c5fff72a740000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001884f2fdb35afe8cf6ff6ef0000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857924d5bda3c5fff7e0000000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857935d5bda3c5fff74fe80000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857924d5bda3c5fff7e0000000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857927d5bda3c5fff779a60000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857927d5bda3c5fff779a60000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001898d83d888a39b9f834bae0000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857927d5bda3c5fff77bed0000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857935d5bda3c5fff715720000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857927d5bda3c5fff779a60000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857927d5bda3c5fff779a60000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001884fb1d817a7dceff9ee7a0000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857935d5bda3c5fff7076d0000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857931d5bda3c5fff708d50000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857931d5bda3c5fff701d70000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001884f3cdb35afe8cf7f5f6f0000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857935d5bda3c5fff75cc70000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857931d5bda3c5fff701d70000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857935d5bda3c5fff715720000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857935d5bda3c5fff75e8c0000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857927d5bda3c5fff779a60000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857935d5bda3c5fff75e8c0000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857935d5bda3c5fff72a740000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857935d5bda3c5fff72a740000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857935d5bda3c5fff72a740000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857935d5bda3c5fff750810000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '0000018535cbd5bda3c5ffdf28520000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857935d5bda3c5fff751760000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857931d5bda3c5fff70a990000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857931d5bda3c5fff712040000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857942d5bda3c5ffd78d6d0000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857931d5bda3c5fff711fe0000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857935d5bda3c5fff707750000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001884f2fdb35afe8cf6ff6ef0000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857927d5bda3c5fff779a60000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857935d5bda3c5fff75e8c0000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857935d5bda3c5fff75e8c0000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857935d5bda3c5fff72da50000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857927d5bda3c5fff779a60000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857927d5bda3c5fff779a60000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857935d5bda3c5fff72da50000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857935d5bda3c5fff74e160000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857935d5bda3c5fff72c380000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857935d5bda3c5fff709620000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857935d5bda3c5fff750810000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857935d5bda3c5fff751760000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857931d5bda3c5fff712040000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857931d5bda3c5fff70a990000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001872e16d8bfa7cfae5710ff0000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001872e16d8bfa7cfae5710ff0000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001872e16d8bfa7cfae5710ff0000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857935d5bda3c5fff751760000',
+            _content_type_uid: 'sdp_categories'
+          },
+          {
+            uid: '000001857927d5bda3c5fff779a60000',
+            _content_type_uid: 'sdp_categories'
+          }
+        ]
+        const categories = [];
+        file?.categoryIds?.forEach((item) => {
+          const isPresent = missingRefs?.find((ele) =>
+            ele?.uid === item?.replace?.(/-/g, '')
+          )
+          if (isPresent?.uid === undefined) {
+            categories?.push({
               "uid": item?.replace?.(/-/g, ''),
               "_content_type_uid": "sdp_categories"
-            }
-          })
+            })
+          }
+        })
+        entry.sdp_articlemeta_data = {
+          sdp_article_categories: categories
         };
         entry.sdp_user_dimension = {
           "sdp_article_audience": {
