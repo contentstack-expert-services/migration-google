@@ -7,6 +7,7 @@ const extractItemsBetweenTags = require("./extractItemsBetweenTags");
 const accordionEntryConveter = require("./accordion");
 const getDropdownValuePromo = require("./dropValues");
 const replaceTags = require("./replaceTags");
+const { missingRefs } = require("./aaray");
 const config = require("../config");
 
 const ulCreater = ({ data }) => {
@@ -480,13 +481,16 @@ const createPromo = ({ data }) => {
         value?.schemaType === "INTERNAL" ?
           "internal" : "external"
       if (value?.schemaType === "INTERNAL") {
-        entry.sdp_main.sdp_promo_module__item.sdp_promo_module_internal_link =
-          [
-            // {
-            //   "uid": extractUidFromUrl(value?.path, "uid"),
-            //   "_content_type_uid": extractUidFromUrl(value?.path) === "article" ? "sdp_knowledge_article" : ""
-            // }
-          ]
+        const isPresent = missingRefs?.find((item) => item?.uid === extractUidFromUrl(value?.path, "uid"))
+        if (isPresent?.uid === undefined) {
+          entry.sdp_main.sdp_promo_module__item.sdp_promo_module_internal_link =
+            [
+              {
+                "uid": extractUidFromUrl(value?.path, "uid"),
+                "_content_type_uid": extractUidFromUrl(value?.path) === "article" ? "sdp_knowledge_article" : ""
+              }
+            ]
+        }
         entry.sdp_main.sdp_promo_module__item.sdp_promo_module_external_link = {
           "title": value?.linkText ?? value?.href,
           "href": value?.href
