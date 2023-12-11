@@ -108,6 +108,9 @@ const pageComponentCreater = ({ item, type }) => {
       "children": [],
       "uid": helper?.uidGenrator()
     };
+    if (head?.colSpan > 1) {
+      tableHead.attrs = { colSpan: head?.colSpan, ...tableHead.attrs, "redactor-attributes": { colSpan: head?.colSpan } }
+    }
     const obj = [];
     const newData = [];
     let para = {};
@@ -340,7 +343,9 @@ const snippetCreate = ({ data }) => {
       }
     }
   })
+
   const paragraphArray = extractItemsBetweenTags(obj, "<p>", "</p>")
+
   let para = {};
   paragraphArray?.result?.forEach((chd) => {
     if (chd?.tagName === "p" && chd?.hasIncomplete) {
@@ -360,10 +365,9 @@ const snippetCreate = ({ data }) => {
   obj?.forEach((item, index) => {
     if (typeof paragraphArray?.startIndex === "number" && typeof paragraphArray?.endIndex === "number") {
       if (paragraphArray?.startIndex === index) {
-        const paraData = rteMapper({ type: "paragraph", text: item?.text })
-        newData?.push(replaceTags({ data: paraData }));
+        newData?.push(replaceTags({ data: para }));
       }
-      if (index > paragraphArray?.endIndex || index < paragraphArray?.startIndex) {
+      if (index >= paragraphArray?.endIndex && index <= paragraphArray?.startIndex) {
         if (item?.tagName === "p" || item?.tagName === "i" || item?.tagName === null) {
           const paraData = rteMapper({ type: "paragraph", text: item?.text });
           newData?.push(replaceTags({ data: paraData }))
