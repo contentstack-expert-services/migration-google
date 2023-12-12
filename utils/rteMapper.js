@@ -9,6 +9,19 @@ const getDropdownValuePromo = require("./dropValues");
 const replaceTags = require("./replaceTags");
 const { missingRefs } = require("./aaray");
 const config = require("../config");
+const traverseChildAndWarpChild = require("./fromRedactor");
+
+const wrapperFragment = ({ children }) => {
+  const newChildren = [];
+  children?.forEach((item) => {
+    if (item?.children?.length) {
+      newChildren?.push({ ...item, children: wrapperFragment({ children: item?.children }) })
+    } else {
+      newChildren?.push(item);
+    }
+  })
+  return traverseChildAndWarpChild(newChildren);
+}
 
 const ulCreater = ({ data }) => {
   const list = [];
@@ -149,7 +162,7 @@ const pageComponentCreater = ({ item, type }) => {
           const paraData = replaceTags({ data: para })
           newData?.push(paraData);
         }
-        if (index > paragraphArray?.endIndex || index < paragraphArray?.startIndex) {
+        if (index >= paragraphArray?.endIndex && index <= paragraphArray?.startIndex) {
           if (item?.tagName === "p") {
             const paraData = rteMapper({ type: "paragraph", text: item?.text });
             newData?.push(replaceTags({ data: paraData }))
@@ -343,15 +356,15 @@ const snippetCreate = ({ data }) => {
       }
     }
   })
-
   const paragraphArray = extractItemsBetweenTags(obj, "<p>", "</p>")
-
   let para = {};
-  paragraphArray?.result?.forEach((chd) => {
+  paragraphArray?.result?.forEach((chd, index) => {
     if (chd?.tagName === "p" && chd?.hasIncomplete) {
       if (chd?.incompleteTag === "<p>") {
+        paragraphArray.startIndex = index;
         para = rteMapper({ type: "paragraph", text: chd?.text })
       } else if (chd?.incompleteTag === "</p>") {
+        paragraphArray.endIndex = index
         para?.children?.push({ text: helper?.removeTags(chd?.text) })
       }
     } else {
@@ -366,13 +379,14 @@ const snippetCreate = ({ data }) => {
     if (typeof paragraphArray?.startIndex === "number" && typeof paragraphArray?.endIndex === "number") {
       if (paragraphArray?.startIndex === index) {
         newData?.push(replaceTags({ data: para }));
-      }
-      if (index >= paragraphArray?.endIndex && index <= paragraphArray?.startIndex) {
-        if (item?.tagName === "p" || item?.tagName === "i" || item?.tagName === null) {
-          const paraData = rteMapper({ type: "paragraph", text: item?.text });
-          newData?.push(replaceTags({ data: paraData }))
-        } else {
-          newData?.push(item);
+      } else {
+        if (index >= paragraphArray?.endIndex || index <= paragraphArray?.startIndex) {
+          if (item?.tagName === "p" || item?.tagName === "i" || item?.tagName === null) {
+            const paraData = rteMapper({ type: "paragraph", text: item?.text });
+            newData?.push(replaceTags({ data: paraData }))
+          } else {
+            newData?.push(item);
+          }
         }
       }
     } else {
@@ -385,7 +399,7 @@ const snippetCreate = ({ data }) => {
     }
   })
   if (newData?.length) {
-    snippetWrapper.children = newData;
+    snippetWrapper.children = wrapperFragment({ children: newData });
   } else {
     snippetWrapper.children = [rteMapper({ type: "paragraph", text: "" })];
   }
@@ -654,7 +668,7 @@ function rteMapper({ type, text, value, headingType, contentTypeUid, attrs = {},
           }
         })
         comp.sdp_accordion_item_description = { "sdp_main_json_rte": rteMapper({ type: "doc" }) }
-        comp.sdp_accordion_item_description.sdp_main_json_rte.children = newData;
+        comp.sdp_accordion_item_description.sdp_main_json_rte.children = wrapperFragment({ children: newData });
         comp.sdp_item_aria_label = ""
         all?.push(comp);
       });

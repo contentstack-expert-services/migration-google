@@ -23,8 +23,10 @@ const readFile = ({ path, readFileV2 = false }) => {
       }
     } else {
       const data = fs.readFileSync(path, "utf-8")
-      if (typeof data === "string") {
+      if (typeof data === "string" && data !== "") {
         return JSON?.parse(data);
+      } else {
+        console.log(`file not Found ${path}`);
       }
       return data;
     }

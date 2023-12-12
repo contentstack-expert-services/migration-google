@@ -16,6 +16,7 @@ const path = require("path");
 const { validated, articleChoices, missingRefs } = require("../utils/aaray");
 const dateConverter = require("../utils/dateChnager");
 const config = require("../config");
+const traverseChildAndWarpChild = require("../utils/fromRedactor");
 const globalFolder = config?.paths?.import?.filePath;
 const folder = read(globalFolder);
 
@@ -71,6 +72,17 @@ const sectionWrapper = (section, newData) => {
   return data;
 }
 
+const wrapperFragment = ({ children }) => {
+  const newChildren = [];
+  children?.forEach((item) => {
+    if (item?.children?.length) {
+      newChildren?.push({ ...item, children: wrapperFragment({ children: item?.children }) })
+    } else {
+      newChildren?.push(item);
+    }
+  })
+  return traverseChildAndWarpChild(newChildren);
+}
 
 
 const itemWrapper = (items, title, audiencesData, deviceData) => {
@@ -103,6 +115,7 @@ const itemWrapper = (items, title, audiencesData, deviceData) => {
     if (sdpMainRte?.children?.length === 0) {
       sdpMainRte.children = [rteMapper({ type: "paragraph", text: "" })]
     }
+    sdpMainRte.children = wrapperFragment({ children: sdpMainRte?.children })
     obj.sdp_items_main_body_rte = {
       sdp_main_json_rte: sdpMainRte
     }

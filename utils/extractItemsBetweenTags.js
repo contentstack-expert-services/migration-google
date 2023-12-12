@@ -4,7 +4,7 @@ const extractItemsBetweenTags = (data, startTag, endTag) => {
   let endIndex = null;
   let isInBetween = false;
   data?.forEach((item, index) => {
-    if (item?.incompleteTag === startTag) {
+    if (item?.hasIncomplete && item?.incompleteTag === startTag) {
       startIndex = index;
       isInBetween = true;
       result.push(item);

@@ -15,8 +15,21 @@ const helper = require("../helper");
 const path = require("path");
 const config = require("../config");
 const { missingRefs } = require("../utils/aaray");
+const traverseChildAndWarpChild = require("../utils/fromRedactor");
 const globalFolder = config?.paths?.import?.filePath;
 const folder = read(globalFolder);
+
+const wrapperFragment = ({ children }) => {
+  const newChildren = [];
+  children?.forEach((item) => {
+    if (item?.children?.length) {
+      newChildren?.push({ ...item, children: wrapperFragment({ children: item?.children }) })
+    } else {
+      newChildren?.push(item);
+    }
+  })
+  return traverseChildAndWarpChild(newChildren);
+}
 
 function categories() {
   folder?.forEach?.((item, index) => {
@@ -42,7 +55,7 @@ function categories() {
         }
         if (file?.source?.category?.description?.length) {
           const sdp_main_json_rte = rteMapper({ type: "doc" });
-          sdp_main_json_rte.children = objectNester(file?.source?.category?.description);
+          sdp_main_json_rte.children = wrapperFragment({ children: objectNester(file?.source?.category?.description) });
           entry.sdp_category_description = { sdp_main_json_rte }
         };
         helper.handleFile({ locale: config?.locale, contentType: config?.contentTypes?.categories, entry, uid: entry?.uid })
