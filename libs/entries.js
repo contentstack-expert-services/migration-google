@@ -190,7 +190,7 @@ function entries() {
           entry.sdp_article_keywords = file?.source?.document?.keywords?.map((item) => item)?.join(",");
           entry.sdp_items_global_insert_items = itemWrapper(file?.source?.document?.items, file?.title, audiencesData, deviceData)
           entry.migration = {
-            "bsp_entry_id": file?.documentId?.replace(/-/g, ''),
+            "bsp_entry_id": file?.documentId,
             "bsp_entry_type": file?.documentType,
             "connect_composer_id": "",
             "connect_composer_type": "",

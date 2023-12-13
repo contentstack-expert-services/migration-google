@@ -58,6 +58,13 @@ function categories() {
           sdp_main_json_rte.children = wrapperFragment({ children: objectNester(file?.source?.category?.description) });
           entry.sdp_category_description = { sdp_main_json_rte }
         };
+        entry.sdp_migration_data = {
+          "bsp_entry_id": file?.categoryId,
+          "bsp_entry_type": "",
+          "connect_composer_id": "",
+          "connect_composer_type": "",
+          "sdp_article_buganizerid": "",
+        }
         helper.handleFile({ locale: config?.locale, contentType: config?.contentTypes?.categories, entry, uid: entry?.uid })
       }
     }
