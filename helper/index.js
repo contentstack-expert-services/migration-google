@@ -31,7 +31,7 @@ const readFile = ({ path, readFileV2 = false }) => {
       return data;
     }
   } catch (err) {
-    console.info("🚀 ~ file: index.js:16 ~ readFile ~ err:", err, path)
+    console.info(`file not Found ${path}`)
     // throw err;
   }
 }
@@ -90,6 +90,10 @@ const writeEntry = ({ data, contentType, locale }) => {
 }
 
 const handleFile = ({ locale, contentType, entry, uid }) => {
+  if (entry?.uid) {
+    entry = JSON?.stringify?.(entry)?.replace?.(/&amp;/g, '&');
+    entry = JSON?.parse?.(entry);
+  }
   let data = {};
   if (
     fs.existsSync(
