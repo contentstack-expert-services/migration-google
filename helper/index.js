@@ -92,7 +92,7 @@ const writeEntry = ({ data, contentType, locale }) => {
 const handleFile = ({ locale, contentType, entry, uid }) => {
   // if (entry?.uid) {
   //   entry = JSON?.stringify?.(entry)?.replace?.(/&amp;/g, '&');
-  //   entry = JSON?.parse?.(entry);
+  //   entry = JSON?.parse?.(entry); 
   // }
   let data = {};
   if (
